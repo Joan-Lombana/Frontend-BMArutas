@@ -6,48 +6,87 @@ import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/auth`;
-  
-  // Signal para mantener el usuario actual
+
+  // usuario actual
   currentUser = signal<any>(null);
 
-  loginLocal(data: { correo: string; contrasena: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, data, { withCredentials: true }).pipe(
+  // ============================
+  // LOGIN LOCAL
+  // ============================
+
+  loginLocal(data: { correo: string; password: string }): Observable<any> {
+
+    return this.http.post(`${this.apiUrl}/login`, data).pipe(
+
       tap((response: any) => {
-        if (response && response.user) {
-          this.currentUser.set(response.user);
+
+        // guardar token
+        if (response.access_token) {
+          localStorage.setItem('token', response.access_token);
         }
+
+        // guardar usuario
+        if (response.usuario) {
+          this.currentUser.set(response.usuario);
+        }
+
       })
+
     );
+
   }
 
-  register(data: { nombre: string; correo: string; contrasena: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, data, { withCredentials: true });
+  // ============================
+  // REGISTER
+  // ============================
+
+  register(data: {
+    primerNombre: string;
+    segundoNombre?: string;
+    primerApellido: string;
+    segundoApellido: string;
+    correo: string;
+    password: string;
+  }): Observable<any> {
+
+    return this.http.post(`${this.apiUrl}/register`, data);
+
   }
 
-  loginWithGoogle(): void {
-    window.location.href = `${this.apiUrl}/google/login`;
+  // ============================
+  // PROFILE
+  // ============================
+
+  getProfile(): Observable<any> {
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      return of(null);
+    }
+
+    return this.http.get(`${this.apiUrl}/profile`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }).pipe(
+      tap(user => this.currentUser.set(user))
+    );
+
   }
 
- getProfile(): Observable<any> {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    return of(null); // no hay sesión activa
-  }
-
-    return this.http.get(`${this.apiUrl}/profile`, { 
-    headers: { Authorization: `Bearer ${token}` } 
-  }).pipe(
-    tap(user => this.currentUser.set(user))
-  );
-
-}
-
+  // ============================
+  // LOGOUT
+  // ============================
 
   logout(): void {
+
     localStorage.removeItem('token');
     this.currentUser.set(null);
+
   }
 
 }

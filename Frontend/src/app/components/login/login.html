@@ -1,226 +1,100 @@
 <div class="login-container">
-  <!-- ========== LADO IZQUIERDO: FORMULARIO ========== -->
+
+  <!-- LADO IZQUIERDO -->
   <div class="login-form-side">
+
     <div class="form-wrapper">
+
       <!-- Logo -->
       <div class="brand-logo">
         <h3 class="brand-name">BMArutas</h3>
       </div>
 
-      <!-- Título dinámico -->
+
+      <!-- Título -->
+
       <div class="form-header">
-        <h1 class="form-title">{{ mostrarRegistro() ? 'Crear Cuenta' : 'Bienvenido' }}</h1>
-        <p class="form-subtitle">{{ mostrarRegistro() ? 'Empieza tu viaje con nosotros' : 'Inicia sesion para continuar' }}</p>
+        <h1 class="form-title">Bienvenido</h1>
+        <p class="form-subtitle">
+          Inicia sesión para continuar
+        </p>
       </div>
 
-      <!-- Mensaje de error -->
+
+      <!-- error -->
+
       @if (errorMessage()) {
         <div class="error-message">
-          <span>{{ errorMessage() }}</span>
+          {{ errorMessage() }}
         </div>
       }
 
-      <!-- ============ FORMULARIO DE LOGIN ============ -->
-      @if (!mostrarRegistro()) {
-        <form
-          (ngSubmit)="onLogin()"
-          #loginForm="ngForm"
-          class="auth-form"
+
+      <!-- FORM LOGIN -->
+
+      <form
+        (ngSubmit)="onLogin()"
+        #loginForm="ngForm"
+        class="auth-form"
+      >
+
+
+        <!-- correo -->
+
+        <div class="form-group">
+
+          <label>Email</label>
+
+          <input
+            type="email"
+            name="correo"
+            [(ngModel)]="loginData.correo"
+            required
+            class="form-input"
           >
-          <!-- Campo: Correo -->
-          <div class="form-group">
-            <label for="correo" class="form-label">Email</label>
-            <input
-              type="email"
-              id="correo"
-              name="correo"
-              class="form-input"
-              placeholder="Enter your email"
-              [(ngModel)]="loginData.correo"
-              [disabled]="isLoading()"
-              required
-              email
-              #correoInput="ngModel"
-              autocomplete="email"
-              />
-              @if (correoInput.invalid && correoInput.touched) {
-                <small class="error-text">
-                  Please enter a valid email
-                </small>
-              }
-            </div>
-            <!-- Campo: Contraseña -->
-            <div class="form-group">
-              <label for="contrasena" class="form-label">Password</label>
-              <div class="input-password-wrapper">
-                <input
-                  [type]="showPassword() ? 'text' : 'password'"
-                  id="contrasena"
-                  name="contrasena"
-                  class="form-input"
-                  placeholder="Enter your password"
-                  [(ngModel)]="loginData.contrasena"
-                  [disabled]="isLoading()"
-                  required
-                  minlength="6"
-                  #contrasenaInput="ngModel"
-                  autocomplete="current-password"
-                  />
-                  <button
-                    type="button"
-                    class="toggle-password-btn"
-                    (click)="togglePasswordVisibility()"
-                    [disabled]="isLoading()"
-                    >
-                  </button>
-                </div>
-                @if (contrasenaInput.invalid && contrasenaInput.touched) {
-                  <small class="error-text">
-                    Password must be at least 6 characters
-                  </small>
-                }
-              </div>
-              <!-- Botón principal de login -->
-              <button type="submit" class="btn-submit" [disabled]="isLoading() || loginForm.invalid">
-                @if (!isLoading()) {
-                  <span>Iniciar Sesion</span>
-                }
-                @if (isLoading()) {
-                  <span class="loading-text">Iniciando sesión...</span>
-                }
-              </button>
-              <!-- Separator -->
-              <div class="separator">
-                <span>o</span>
-              </div>
-              <!-- Botón de Google -->
-              <button
-                type="button"
-                class="btn-google"
-                (click)="loginWithGoogle()"
-                [disabled]="isLoading()"
-                >
-                <span class="google-icon"></span>
-                <span>Continuar con Google</span>
-              </button>
-              <!-- Toggle a registro -->
-              <p class="toggle-text">
-                ¿No tienes cuenta?
-                <button type="button" class="link-button" (click)="cambiarARegistro()">Regístrate</button>
-              </p>
-            </form>
-          }
 
-          <!-- ============ FORMULARIO DE REGISTRO ============ -->
-          @if (mostrarRegistro()) {
-            <form
-              (ngSubmit)="onRegistro()"
-              #registroForm="ngForm"
-              class="auth-form"
-              >
-              <!-- Campo: Nombre -->
-              <div class="form-group">
-                <label for="nombre" class="form-label">Full name</label>
-                <input
-                  type="text"
-                  id="nombre"
-                  name="nombre"
-                  class="form-input"
-                  placeholder="Enter your full name"
-                  [(ngModel)]="registroData.nombre"
-                  [disabled]="isLoading()"
-                  required
-                  #nombreInput="ngModel"
-                  />
-                  @if (nombreInput.invalid && nombreInput.touched) {
-                    <small class="error-text">
-                      Name is required
-                    </small>
-                  }
-                </div>
-                <!-- Campo: Correo -->
-                <div class="form-group">
-                  <label for="correo-registro" class="form-label">Email</label>
-                  <input
-                    type="email"
-                    id="correo-registro"
-                    name="correo"
-                    class="form-input"
-                    placeholder="Enter your email"
-                    [(ngModel)]="registroData.correo"
-                    [disabled]="isLoading()"
-                    required
-                    email
-                    #correoRegistroInput="ngModel"
-                    autocomplete="email"
-                    />
-                    @if (correoRegistroInput.invalid && correoRegistroInput.touched) {
-                      <small
-                        class="error-text"
-                        >
-                        Please enter a valid email
-                      </small>
-                    }
-                  </div>
-                  <!-- Campo: Contraseña -->
-                  <div class="form-group">
-                    <label for="contrasena-registro" class="form-label">Password</label>
-                    <div class="input-password-wrapper">
-                      <input
-                        [type]="showPassword() ? 'text' : 'password'"
-                        id="contrasena-registro"
-                        name="contrasena"
-                        class="form-input"
-                        placeholder="Create a password"
-                        [(ngModel)]="registroData.contrasena"
-                        [disabled]="isLoading()"
-                        required
-                        minlength="6"
-                        #contrasenaRegistroInput="ngModel"
-                        autocomplete="new-password"
-                        />
-                        <button
-                          type="button"
-                          class="toggle-password-btn"
-                          (click)="togglePasswordVisibility()"
-                          [disabled]="isLoading()"
-                          >
-                        </button>
-                      </div>
-                      @if (contrasenaRegistroInput.invalid && contrasenaRegistroInput.touched) {
-                        <small
-                          class="error-text"
-                          >
-                          Password must be at least 6 characters
-                        </small>
-                      }
-                    </div>
-                    <!-- Botón de registro -->
-                    <button
-                      type="submit"
-                      class="btn-submit"
-                      [disabled]="isLoading() || registroForm.invalid"
-                      >
-                      @if (!isLoading()) {
-                        <span>Crear Cuenta</span>
-                      }
-                      @if (isLoading()) {
-                        <span class="loading-text">Creando cuenta...</span>
-                      }
-                    </button>
-                    <!-- Toggle a login -->
-                    <p class="toggle-text">
-                      ¿Ya tienes cuenta?
-                      <button type="button" class="link-button" (click)="cambiarALogin()">Inicia sesión</button>
-                    </p>
-                  </form>
-                }
-              </div>
-            </div>
+        </div>
 
-            <!-- ========== LADO DERECHO: IMAGEN ========== -->
-            <div class="login-image-side">
-              <div class="image-overlay">
-              </div>
-            </div>
-          </div>
+
+        <!-- password -->
+
+        <div class="form-group">
+
+          <label>Password</label>
+
+          <input
+            type="password"
+            name="password"
+            [(ngModel)]="loginData.password"
+            required
+            class="form-input"
+          >
+
+        </div>
+
+
+        <!-- botón -->
+
+        <button
+          type="submit"
+          class="btn-submit"
+          [disabled]="loginForm.invalid || isLoading()"
+        >
+          Iniciar sesión
+        </button>
+
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- LADO DERECHO -->
+
+  <div class="login-image-side">
+    <div class="image-overlay"></div>
+  </div>
+
+</div>
