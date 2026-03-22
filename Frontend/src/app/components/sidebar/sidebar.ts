@@ -21,8 +21,10 @@ export class SidebarComponent {
 
   menuItems: MenuItem[] = [
     { label: 'Principal', route: '/principal', icon: 'dashboard' },
-    { label: 'Gestión de Rutas', route: '/rutas', icon: 'route' },
-    { label: 'Vehículos', route: '/vehiculos', icon: 'truck' }
+    { label: 'Rutas programadas', route: '/rutas', icon: 'route' },
+    { label: 'Vehículos', route: '/vehiculos', icon: 'truck' },
+    { label: 'Conductores', route: '/conductores', icon: 'users' },
+    { label: 'Rutas Concretadas', route: '/rutas-concretadas', icon: 'check-circle' }
   ];
 
   onNavigate() {
