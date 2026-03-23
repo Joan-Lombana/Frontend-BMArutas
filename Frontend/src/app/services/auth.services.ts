@@ -43,18 +43,21 @@ export class AuthService {
   // REGISTER
   // ============================
 
-  register(data: {
-    primerNombre: string;
-    segundoNombre?: string;
-    primerApellido: string;
-    segundoApellido: string;
-    correo: string;
-    password: string;
-  }): Observable<any> {
+  register(data: any): Observable<any> {
 
-    return this.http.post(`${this.apiUrl}/register`, data);
+  const token = localStorage.getItem('token');
 
-  }
+  return this.http.post(
+    `${environment.apiUrl}/usuario/crear`,
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+}
 
   // ============================
   // PROFILE

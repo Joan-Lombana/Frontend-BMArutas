@@ -65,8 +65,16 @@ export class LoginComponent {
       },
       error: (err: any) => {
         this.isLoading.set(false);
-        this.errorMessage.set('Correo o contraseña incorrectos');
-        console.error('Error en login:', err);
+        if (err.status === 401) {
+          this.errorMessage.set('Usuario no autorizado');
+        } 
+        else if (err.status === 400) {
+          this.errorMessage.set('Correo o contraseña incorrectos');
+        } 
+        else {
+          this.errorMessage.set('No se pudo iniciar sesión');
+        }
+        console.error(err);
       }
     });
   }
