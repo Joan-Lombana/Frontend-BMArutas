@@ -52,30 +52,57 @@ export class LoginComponent {
    * Iniciar sesión con correo y contraseña
    */
   onLogin() {
-    // Limpiar error previo
-    this.errorMessage.set(null);
-    this.isLoading.set(true);
+  // Limpiar error previo
+  this.errorMessage.set(null);
 
-    // Llamada al backend
-    this.auth.loginLocal(this.loginData).subscribe({
-      next: () => {
-        this.isLoading.set(false);
-        this.loginSuccess.emit();
-        this.router.navigateByUrl('/principal');
-      },
-      error: (err: any) => {
-        this.isLoading.set(false);
-        if (err.status === 401) {
-          this.errorMessage.set('Usuario no autorizado');
-        } 
-        else if (err.status === 400) {
-          this.errorMessage.set('Correo o contraseña incorrectos');
-        } 
-        else {
-          this.errorMessage.set('No se pudo iniciar sesión');
-        }
-        console.error(err);
-      }
-    });
+  if (!this.loginData.correo || !this.loginData.password) {
+    this.errorMessage.set('Ingresa correo y contraseña');
+    return;
   }
+
+  this.isLoading.set(true);
+
+  this.auth.loginLocal(this.loginData).subscribe({
+    
+    // 🔥 IMPORTANTE: usar res
+    next: (res: any) => {
+
+      this.isLoading.set(false);
+
+      const rol = res.usuario?.rol;
+
+      console.log('ROL:', rol);
+
+      // 🚫 BLOQUEAR SI NO ES ADMIN
+      if (rol !== 'admin') {
+        this.errorMessage.set('Solo administradores pueden acceder');
+        this.auth.logout();
+        return;
+      }
+
+      // ✅ PERMITIR
+      this.loginSuccess.emit();
+      this.router.navigateByUrl('/principal');
+
+    },
+
+    error: (err: any) => {
+
+      this.isLoading.set(false);
+
+      // 🔥 mostrar mensaje real del backend si existe
+      if (err.error?.message) {
+        this.errorMessage.set(err.error.message);
+      } 
+      else if (err.status === 401) {
+        this.errorMessage.set('Credenciales incorrectas');
+      } 
+      else {
+        this.errorMessage.set('No se pudo iniciar sesión');
+      }
+
+      console.error(err);
+    }
+  });
+}
 }
