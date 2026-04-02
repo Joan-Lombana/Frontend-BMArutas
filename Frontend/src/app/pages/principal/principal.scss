@@ -14,10 +14,10 @@ $shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 $radius: 12px;
 
 .app-layout { 
-  display: flex; 
+  display: flex;
   height: 100vh; 
-  background-color: $bg; 
-  overflow: hidden; 
+  background-color: #eef0f8; /* Azul-gris suave como la referencia */
+  overflow: hidden;
 }
 
 .main-content {
@@ -25,286 +25,394 @@ $radius: 12px;
   display: flex; 
   flex-direction: column; 
   overflow: hidden; 
-  transition: margin-left 0.3s ease;
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-left: 72px;
+
   &.sidebar-open { 
-    @media (min-width: 1024px) { 
-      margin-left: 260px; 
-    } 
+    margin-left: 240px;
   }
-  &:not(.sidebar-open) {
-    @media (min-width: 1025px) {
-      margin-left: 80px;
+}
+
+/* ================================= */
+/* ADMINISTRADOR: BENTO GRID DASHBOARD */
+/* ================================= */
+
+.dashboard-bento {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  &.map-expanded {
+    padding: 0;
+    gap: 0;
+    
+    .bento-header, .stats-column {
+      display: none;
+    }
+    .bento-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      height: 100%;
+    }
+    .map-card {
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
+      height: 100%;
     }
   }
 }
 
-.dashboard { 
-  flex: 1; 
-  padding: 2rem; 
-  overflow-y: auto; 
-  display: flex; 
-  flex-direction: column; 
-  gap: 2rem; 
-}
+/* --- HEADER DEL DASHBOARD --- */
+.bento-header {
+  padding: 0.5rem 0 1rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  margin-bottom: 0.5rem;
 
-.page-header {
-  display: flex; 
-  justify-content: space-between; 
-  align-items: flex-end;
-  .header-content {
-    h1 { 
-      font-size: 1.8rem; 
-      color: $dark; 
-      font-weight: 700; 
-    }
-    .subtitle { 
-      color: $gray; 
-      font-size: 0.95rem; 
-    }
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.2rem 0;
+    letter-spacing: -0.03em;
   }
-  .quick-actions {
-    display: flex; gap: 1rem;
-    .btn-action {
-      display: flex; 
-      align-items: center; 
-      gap: 0.5rem; 
-      padding: 0.75rem 1.25rem;
-      border-radius: $radius; 
-      border: none; 
-      font-weight: 600; 
-      cursor: pointer;
-      &.primary { 
-        background-color: $primary; 
-        color: $white; 
-      }
-      &.secondary { 
-        background-color: $secondary; 
-        color: $white; 
-      }
-      &.outline { 
-        background-color: transparent; 
-        border: 2px solid $gray; 
-        color: $text; }
-    }
+  p {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
   }
 }
 
-.stats-grid {
-  display: grid; 
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+/* --- DASHBOARD COLUMNS (LAYOUT SECUNDARIO) --- */
+.dashboard-columns {
+  display: flex;
+  gap: 1.5rem;
+  flex: 1;
+  min-height: 0;
+  
+  @media (max-width: 1024px) {
+    flex-direction: column;
+  }
+}
+
+/* --- CENTER COLUMN (AZUL, VERDE, ROJA) --- */
+.center-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+/* AZUL: Botones de Acción Píldoras (ahora en la parte superior global) */
+.action-pills-row {
+  display: flex;
   gap: 1rem;
-  .stat-card {
-    background: $white; 
-    padding: 1rem; 
-    border-radius: $radius; 
-    box-shadow: $shadow; 
-    border-left: 4px solid transparent;
-    &.green { 
-      border-left-color: $primary; 
-      .stat-icon { 
-        color: $primary; 
-        background: rgba($primary, 0.1); 
-      } }
-    &.blue { 
-      border-left-color: $secondary; 
-      .stat-icon { 
-        color: $secondary; 
-        background: rgba($secondary, 0.1); 
-      } }
-    &.purple { 
-      border-left-color: #9b59b6; 
-      .stat-icon { color: #9b59b6; 
-        background: rgba(155, 89, 182, 0.1); } 
-      }
-    &.orange { 
-      border-left-color: #e67e22; 
-      .stat-icon { 
-        color: #e67e22; background: rgba(230, 126, 34, 0.1); } 
-      }
-    .stat-header { 
-      display: flex; 
-      justify-content: space-between; 
-      margin-bottom: 0.75rem;
-      .stat-icon { 
-        width: 36px; 
-        height: 36px; 
-        border-radius: 8px; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-      }
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+
+  .pill-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 1.2rem 0.4rem 0.4rem;
+    border-radius: 40px;
+    border: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: all 0.2s;
+    
+    .pill-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1rem;
+      transition: all 0.2s;
     }
-    .stat-body { 
-      h3 { 
-        font-size: 1.5rem; 
-        font-weight: 700; 
-        color: $dark; 
-      } p 
-      { 
-        color: $gray; 
-        font-size: 0.8rem; } 
-      }
+
+    &.highlight {
+      background: #eef2ff;
+      color: #4f46e5;
+      border: 1px solid #e0e7ff;
+      .pill-icon { background: #4f46e5; color: white; }
+      &:hover { background: #e0e7ff; }
+    }
+
+    &.modern {
+      color: #374151;
+      border: 1px solid #e5e7eb;
+      .pill-icon { background: #f3f4f6; color: #111827; }
+      &:hover { background: #f9fafb; .pill-icon { background: #e5e7eb; } }
+    }
   }
 }
 
-.content-grid {
-  display: grid; 
-  grid-template-columns: 1fr 350px; 
-  gap: 1.5rem; 
-  min-height: 600px;
-  @media (max-width: 1024px) { 
-    grid-template-columns: 1fr; }
+/* --- BENTO CARD BASE --- */
+.bento-card {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.04);
 }
 
-.map-section {
-  .section-card {
-    background: $white; 
-    border-radius: $radius; 
-    box-shadow: $shadow; 
-    height: 100%;
-    display: flex; 
-    flex-direction: column; 
+/* VERDE: MAPA (CENTRO) */
+.map-card {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 380px; /* Reducido para dar espacio a la lista abajo */
+  
+  &.primary-card {
+    background: #eef2ff; /* Un ligero tinte o completamente blanco */
+  }
+
+  .map-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    z-index: 20;
+
+    .map-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #111827;
+      
+      i { color: #10b981; font-size: 1.2rem; }
+      h3 { font-size: 1.1rem; font-weight: 700; margin: 0; }
+    }
+
+    .map-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      .bento-select {
+        padding: 0.4rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        background: #f9fafb;
+        color: #374151;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        &:focus { outline: none; border-color: #10b981; }
+      }
+
+      .icon-action-btn {
+        background: #f3f4f6;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        color: #4b5563;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        &:hover { background: #e5e7eb; color: #111827; }
+      }
+    }
+  }
+
+  .mapa-container {
+    flex: 1;
+    position: relative;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
     overflow: hidden;
     
-    .card-header {
-      padding: 1.5rem; 
-      border-bottom: 1px solid $light; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center;
-      border-bottom: 3px solid #10b981;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      h2 { 
-        font-size: 1.4rem; 
-        color: #1a202c; 
-        font-weight: 700;
-      }
-
-      ::before {
-            content: '🗺️';
-            font-size: 1.5rem;
-            filter: grayscale(0);
-        }
-      .select-route { 
-        padding: 0.5rem; 
-        border-radius: 8px; 
-        border: 2px solid $light; 
-        color: $text; 
-        
-
-        &:focus {
-          outline: none;
-          box-shadow: 0 0 0 1px rgba($primary, 0.2);
-          }
-      .select-route option {
-        padding: 3px 8px !important;
-        font-size: 0.9rem;
-        line-height: 1.2 !important;
-      }
-      }
-       
+    app-mapa {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
 
-    .mapa-container {
-      flex: 1; 
-      min-height: 500px; 
-      background: $bg; 
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      app-mapa { 
-        flex: 1;
-        display: block;
-        position: relative;
-      }
-      app-herramientasmapa { 
-        position: absolute; 
-        top: 10px; 
-        left: 50%; 
-        z-index: 10000; 
-      }
+    app-herramientasmapa {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none; /* click-through to map */
+      z-index: 500; /* above map */
     }
   }
 }
 
-.side-panel {
-  background: $white; 
-  border-radius: $radius; 
-  box-shadow: $shadow; 
+/* ROJO: RUTAS RECIENTES (TABLA) */
+.routes-list-card {
   padding: 1.5rem;
-  h3 { 
-    font-size: 1.1rem; 
-    color: $dark; 
-    margin-bottom: 1rem; 
-  }
-  .vehicle-list {
-    display: flex; 
-    flex-direction: column; 
-    gap: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 
-    /* Scroll vertical */
-    max-height: 400px; // ajusta según tu diseño
+  .card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+
+    h3 { font-size: 1.1rem; font-weight: 700; color: #111827; margin: 0; }
+    .see-all-btn { 
+      background: none; border: none; font-size: 0.85rem; font-weight: 600; color: #6b7280; cursor: pointer; 
+      &:hover { color: #111827; }
+    }
+  }
+
+  .list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 320px;
     overflow-y: auto;
+    padding-right: 4px;
+    
+    &::-webkit-scrollbar { width: 5px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+    &::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+  }
 
-    .vehicle-item {
-      display: flex; 
-      align-items: center; 
-      gap: 1rem; 
-      padding: 1rem; 
-      background: $bg; 
-      border-radius: 8px; 
-      cursor: pointer;
+  .list-item {
+    display: grid;
+    grid-template-columns: 48px 1.5fr 1fr auto;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: 16px;
+    transition: background 0.2s;
+    cursor: pointer;
+    
+    &:hover { background: #f9fafb; }
 
-      &:hover { background: $light; }
-      &.active { border-left: 3px solid $primary; }
+    .item-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #e5e7eb; color: #6b7280; display: flex; align-items: center; justify-content: center;
+    }
 
-      .vehicle-icon { 
-        width: 40px; 
-        height: 40px; 
-        background: rgba($primary, 0.1); 
-        border-radius: 8px; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        color: $primary; 
+    .item-details {
+      h4 { margin: 0; font-size: 0.95rem; font-weight: 600; color: #111827; }
+      p { margin: 0; font-size: 0.8rem; color: #6b7280; }
+    }
+
+    .item-meta {
+      h4, .date { margin: 0; font-size: 0.9rem; font-weight: 500; color: #111827; }
+      p, .route-name { margin: 0; font-size: 0.8rem; color: #6b7280; }
+    }
+
+    .item-status {
+      .badge {
+        padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        
+        i { font-size: 0.5rem; }
+        &.in-progress { background: #ecfdf5; color: #059669; }
+        &.scheduled    { background: #fef3c7; color: #d97706; }
+        &.done         { background: #eff6ff; color: #3b82f6; }
+        &.failed       { background: #fef2f2; color: #dc2626; }
       }
+    }
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 48px 1fr auto;
+      .item-meta { display: none; }
+    }
+  }
 
-      .vehicle-info { 
-        flex: 1; 
-        .placa { 
-          font-weight: 600; 
-          color: $dark; 
-        } 
-        .modelo { 
-          font-size: 0.85rem; 
-          color: $gray; } 
-      }
+  .routes-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+  }
 
-      .vehicle-status { 
-        font-size: 0.75rem; 
-        padding: 0.25rem 0.5rem; 
-        border-radius: 10px;
+  .empty-routes {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: #9ca3af;
+    
+    i { font-size: 2rem; margin-bottom: 0.75rem; display: block; opacity: 0.4; }
+    p { margin: 0 0 0.25rem 0; font-weight: 600; color: #6b7280; }
+    small { font-size: 0.8rem; }
+  }
+}
 
-        &.activo { 
-          background: rgba($primary, 0.1); 
-          color: $primary; 
-        }
-        &.inactivo { 
-          background: rgba($danger, 0.1); 
-          color: $danger; }
+/* --- RIGHT COLUMN (AMARILLA: ESTADISTICAS Y RESUMEN) --- */
+.right-column {
+  width: 330px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-overview {
+  padding: 1.5rem;
+  flex: 1; /* Estira a la misma altura si se requiere */
+
+  .card-title-row {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;
+    h3 { margin: 0; font-size: 1.1rem; color: #111827; }
+    i { color: #9ca3af; }
+  }
+
+  .main-stat {
+    display: flex; justify-content: center; margin-bottom: 2rem;
+    .circle-chart {
+      width: 180px; height: 180px; border-radius: 50%;
+      background: conic-gradient(#4f46e5 0% 65%, #38bdf8 65% 85%, #1e293b 85% 100%);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      
+      .inner-circle {
+        width: 130px; height: 130px; border-radius: 50%; background: white;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        p { margin: 0; font-size: 0.8rem; color: #6b7280; }
+        h2 { margin: 0; font-size: 1.5rem; font-weight: 800; color: #111827; }
       }
     }
   }
-  .empty-state { 
-    text-align: center; 
-    padding: 2rem; 
-    color: $gray; i 
-    { font-size: 2rem; 
-      margin-bottom: 1rem; 
-      opacity: 0.5; 
-      display: block; } 
+
+  .mini-stats-list {
+    display: flex; flex-direction: column; gap: 1rem;
+    
+    .mini-stat-item {
+      display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0;
+      
+      .ms-icon {
+        width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+        &.blue { background: #eff6ff; color: #3b82f6; }
+        &.dark { background: #f1f5f9; color: #0f172a; }
+        &.orange { background: #fff7ed; color: #f97316; }
+      }
+      .ms-content {
+        flex: 1;
+        h4 { margin: 0; font-size: 0.9rem; font-weight: 600; color: #111827; }
+        p { margin: 0; font-size: 0.75rem; color: #9ca3af; }
+      }
+      .ms-value {
+        font-weight: 800; font-size: 1.1rem; color: #111827;
+      }
     }
+  }
 }
+
 
 .modal-overlay { 
   position: fixed; 

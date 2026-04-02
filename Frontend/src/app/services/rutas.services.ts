@@ -21,11 +21,11 @@ export class RutasService {
   }
   
 
-  actualizarRuta(id: number, body: any) {
+  actualizarRuta(id: string, body: any) {
     return this.http.put(`${this.baseUrl}/rutas/${id}`, body);
   }
 
-  eliminarRuta(id: number) {
+  eliminarRuta(id: string) {
     return this.http.delete(`${this.baseUrl}/rutas/${id}`);
   }
 }

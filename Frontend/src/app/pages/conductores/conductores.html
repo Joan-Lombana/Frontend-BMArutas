@@ -1,0 +1,119 @@
+<div class="app-layout">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeSidebar)="toggleSidebar()" (toggleSidebar)="toggleSidebar()"></app-sidebar>
+
+  <div class="main-content" [class.sidebar-open]="sidebarOpen()">
+    <app-header (toggleSidebar)="toggleSidebar()"></app-header>
+    
+    <main class="dashboard">
+      <div class="page-header">
+        <div class="header-content">
+          <h1>Directorio de Conductores</h1>
+          <p>Gestiona los usuarios autorizados para conducir las rutas.</p>
+        </div>
+        <div class="quick-actions">
+          <button class="btn-action primary" (click)="abrirModalRegistrar()">
+            <i class="fa-solid fa-user-plus"></i> Registrar Conductor
+          </button>
+        </div>
+      </div>
+
+      <!-- LISTADO DE CONDUCTORES -->
+      <div class="card card-table">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Nombre Completo</th>
+                  <th>Correo</th>
+                  <th>Contacto</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of conductores()">
+                  <td>
+                    <div class="user-info">
+                      <div class="user-avatar">
+                        <i class="fa-solid fa-user"></i>
+                      </div>
+                      <div class="user-details">
+                        <span class="user-name">{{c.primerNombre}} {{c.primerApellido}}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{c.correo}}</td>
+                  <td>{{c.numero_celular || 'No registrado'}}</td>
+                  <td>
+                    <span class="badge" [class.badge-success]="c.activo" [class.badge-danger]="!c.activo">
+                      {{c.activo ? 'Activo' : 'Inactivo'}}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn-icon text-danger" (click)="eliminarConductor(c)" title="Eliminar">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="conductores().length === 0">
+                  <td colspan="5" class="empty-state">
+                    No hay conductores registrados.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<!-- MODAL: REGISTRAR CONDUCTOR -->
+<div class="modal-overlay" *ngIf="showRegistrarModal()" (click)="cerrarModalRegistrar()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Registrar Nuevo Conductor</h2>
+      <button class="close-btn" (click)="cerrarModalRegistrar()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <form (submit)="$event.preventDefault(); guardarConductor()">
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label>Primer Nombre *</label>
+            <input type="text" [value]="formConductor().primerNombre" (input)="formConductor().primerNombre = $any($event.target).value" required>
+          </div>
+          <div class="form-group flex-1">
+            <label>Primer Apellido *</label>
+            <input type="text" [value]="formConductor().primerApellido" (input)="formConductor().primerApellido = $any($event.target).value" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Segundo Apellido</label>
+          <input type="text" [value]="formConductor().segundoApellido" (input)="formConductor().segundoApellido = $any($event.target).value">
+        </div>
+
+        <div class="form-group">
+          <label>Correo Electrónico *</label>
+          <input type="email" [value]="formConductor().correo" (input)="formConductor().correo = $any($event.target).value" required>
+        </div>
+
+        <div class="form-group">
+          <label>Contraseña *</label>
+          <input type="password" [value]="formConductor().password" (input)="formConductor().password = $any($event.target).value" required>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="cerrarModalRegistrar()">Cancelar</button>
+          <button type="submit" class="btn-submit">Registrar Conductor</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>

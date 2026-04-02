@@ -1,27 +1,54 @@
 <aside class="sidebar" [class.open]="isOpen()">
+
+  <!-- Botón toggle flotante en el borde derecho -->
+  <button class="sidebar-toggle-btn" (click)="toggleSidebar.emit()" [title]="isOpen() ? 'Colapsar' : 'Expandir'">
+    <i class="fa-solid fa-chevron-right"></i>
+  </button>
+
+  <!-- Marca -->
   <div class="sidebar-brand">
-    
-    @if (isOpen()) {
-      <div class="brand-logo"><i class="fa-solid fa-truck-fast"></i></div>
-      <div class="brand-text"><h2>BMArutas</h2><p>Sistema de Gestión</p></div>
-    }
-    <button class="sidebar-toggle" (click)="toggleSidebar.emit()" title="Toggle Sidebar">
-      <i class="fa-solid fa-bars" [class.fa-rotate-180]="isOpen()"></i>
-    </button>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section">
-      @if (isOpen()) { <p class="nav-title">MENÚ PRINCIPAL</p> }
-      @for (item of menuItems; track item) {
-        <a [routerLink]="item.route" routerLinkActive="active" class="nav-item" (click)="onNavigate()" [title]="item.label">
-          @if (item.icon === 'dashboard') { <i class="nav-icon fa-solid fa-table-columns"></i> }
-          @if (item.icon === 'route') { <i class="nav-icon fa-solid fa-route"></i> }
-          @if (item.icon === 'truck') { <i class="nav-icon fa-solid fa-truck"></i> }
-          @if (item.icon === 'users') { <i class="nav-icon fa-solid fa-users"></i> }
-          @if (item.icon === 'check-circle') { <i class="nav-icon fa-solid fa-check-circle"></i> }
-          @if (isOpen()) { <span class="nav-label">{{ item.label }}</span> }
-        </a>
-      }
+    <div class="brand-logo">
+      <i class="fa-solid fa-truck-fast"></i>
     </div>
+    <div class="brand-text">
+      <h2>BMArutas</h2>
+      <p>Sistema de Gestión</p>
+    </div>
+  </div>
+
+  <!-- Navegación -->
+  <nav class="sidebar-nav">
+    <p class="nav-title">MENÚ</p>
+
+    @for (item of menuItems; track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        class="nav-item"
+        (click)="onNavigate()"
+        [title]="item.label">
+
+        <div class="nav-icon-wrap">
+          @if (item.icon === 'dashboard')    { <i class="fa-solid fa-table-columns"></i> }
+          @if (item.icon === 'route')        { <i class="fa-solid fa-route"></i> }
+          @if (item.icon === 'truck')        { <i class="fa-solid fa-truck"></i> }
+          @if (item.icon === 'users')        { <i class="fa-solid fa-users"></i> }
+          @if (item.icon === 'check-circle') { <i class="fa-solid fa-circle-check"></i> }
+        </div>
+
+        <span class="nav-label">{{ item.label }}</span>
+      </a>
+    }
   </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <div class="footer-item">
+      <div class="footer-icon">
+        <i class="fa-solid fa-gear"></i>
+      </div>
+      <span class="footer-label">Configuración</span>
+    </div>
+  </div>
+
 </aside>

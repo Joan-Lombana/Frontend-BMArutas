@@ -1,4 +1,5 @@
 import { Component, signal, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from '../../components/header/header';
 import { SidebarComponent } from '../../components/sidebar/sidebar';
@@ -6,16 +7,32 @@ import { MapaComponent } from '../../components/mapa/mapa';
 import { Herramientasmapa } from '../../components/herramientasmapa/herramientasmapa';
 import { VehiculosService } from '../../services/vehiculos.services';
 import { RutasService } from '../../services/rutas.services';
+import { RecorridosService } from '../../services/recorridos.services';
+import { UsuariosService } from '../../services/usuarios.services';
 import { LeafletMapService } from '../../services/leaflet-map.services';
 
 
 interface Ruta { 
-  id: string;                   // UUID
+  id: string;
   nombre_ruta: string; 
   horario: string; 
   zona: string; 
   estado: string; 
-  shape: string;                // 👈 NECESARIO
+  shape: string;
+}
+
+interface Recorrido {
+  id: string;
+  ruta_id: string;
+  vehiculo_id: string;
+  conductor_id: string;
+  fecha_inicio: string;
+  horario_inicio?: string;
+  estado: string;
+  // Datos enriquecidos (pueden venir del backend o los buscamos localmente)
+  nombre_ruta?: string;
+  conductor_nombre?: string;
+  vehiculo_placa?: string;
 }
 
 interface Vehiculo { 
@@ -63,12 +80,17 @@ export class PrincipalComponent implements OnInit {
   
   private vehiculosService = inject(VehiculosService);
   private rutasService = inject(RutasService);
-  private leafletMapService = inject(LeafletMapService);
+  private recorridosService = inject(RecorridosService);
+  private usuariosService = inject(UsuariosService);
+  private router = inject(Router);
   private perfilId = 'bcadd725-99a9-458f-bb7f-2eea173c0eb3';
   private mapService = inject(LeafletMapService);
 
-  sidebarOpen = signal(true);
+  sidebarOpen = signal(false);
   vehiculoSeleccionado = signal<Vehiculo | null>(null);
+
+  // Paneles Administrativos
+  mapFullscreen = signal(false);
 
   showRegistrarRutaModal = signal(false);
   showRegistrarVehiculoModal = signal(false);
@@ -80,9 +102,11 @@ export class PrincipalComponent implements OnInit {
   formDireccion = signal<FormDireccion>({ rutaId: '', direccion: '', orden: 1 });
   
   rutas = signal<Ruta[]>([]);
+  recorridos = signal<Recorrido[]>([]);
   rutaSeleccionada = signal<string | null>(null);
 
   vehiculos = signal<Vehiculo[]>([]);
+  conductores = signal<any[]>([]);
   stats = signal<Stats>({ vehiculosActivos: 0, rutasCompletadas: 0, rutasActivas: 0 });
 
 
@@ -92,6 +116,8 @@ export class PrincipalComponent implements OnInit {
   ngOnInit() {
     this.cargarRutas();
     this.cargarVehiculos();
+    this.cargarConductores();
+    this.cargarRecorridos();
   }
 
   // ---------------------------------------------------------
@@ -184,16 +210,11 @@ export class PrincipalComponent implements OnInit {
     this.vehiculosService.getVehiculos(this.perfilId).subscribe({
       next: (resp: any) => {
         console.log('📥 Vehículos:', resp);
-
         const arr = Array.isArray(resp) ? resp : (resp.data || []);
         this.vehiculos.set(arr);
-
-        if (arr.length > 0)
-          this.vehiculoSeleccionado.set(arr[0]);
-
+        if (arr.length > 0) this.vehiculoSeleccionado.set(arr[0]);
         this.actualizarStats();
       },
-
       error: (err) => {
         console.error('❌ Error cargando vehículos:', err);
         this.vehiculos.set([]);
@@ -201,20 +222,73 @@ export class PrincipalComponent implements OnInit {
     });
   }
 
+  cargarConductores() {
+    this.usuariosService.getUsuarios().subscribe({
+      next: (resp: any) => {
+        const arr = Array.isArray(resp) ? resp : (resp.data || []);
+        this.conductores.set(arr);
+      },
+      error: () => this.conductores.set([])
+    });
+  }
+
+  cargarRecorridos() {
+    this.recorridosService.getRecorridos(this.perfilId).subscribe({
+      next: (resp: any) => {
+        console.log('📥 Recorridos RAW (crudo del backend):', JSON.stringify(resp));
+        const arr: Recorrido[] = Array.isArray(resp) ? resp : (resp.data || []);
+        console.log('📦 Recorridos parseados:', arr);
+        if (arr.length > 0) {
+          console.log('🔍 Ejemplo primer recorrido, campos:', Object.keys(arr[0]));
+          console.log('🔍 Primer recorrido completo:', JSON.stringify(arr[0]));
+        }
+        console.log('👥 Conductores cargados:', this.conductores());
+        console.log('🚗 Vehículos cargados:', this.vehiculos());
+        
+        this.recorridos.set(arr);
+        this.actualizarStats();
+      },
+      error: (err) => {
+        console.error('❌ Error cargando recorridos:', err);
+        this.recorridos.set([]);
+      }
+    });
+  }
+
+  getDetalleRuta(rutaId: string) {
+    const ruta = this.rutas().find(ru => ru.id === rutaId);
+    return ruta?.nombre_ruta || 'Ruta sin nombre';
+  }
+
+  getDetalleConductor(conductorId: string) {
+    const conductor = this.conductores().find(c => c.id === conductorId);
+    return conductor ? `${conductor.primerNombre || ''} ${conductor.primerApellido || ''}`.trim() : 'Sin asignar';
+  }
+
+  getDetalleVehiculo(vehiculoId: string) {
+    const vehiculo = this.vehiculos().find(v => v.id === vehiculoId);
+    return vehiculo ? vehiculo.placa : 'No especificado';
+  }
+
   actualizarStats() {
-    const vehiculosActivos = 
-    this.vehiculos().filter(v => v.activo).length;
-    const rutasCompletadas = 
-    this.rutas().filter(r => r.estado === 'completada').length;
-    const rutasActivas = 
-    this.rutas().filter(r => r.estado === 'activa' || r.estado === 'programada').length;
+    const vehiculosActivos = this.vehiculos().filter(v => v.activo).length;
+    const rutasCompletadas = this.recorridos().filter(r => r.estado === 'completado' || r.estado === 'finalizado').length;
+    const rutasActivas = this.recorridos().filter(r => 
+      ['activo', 'en_curso', 'programado', 'asignado', 'iniciado', 'pendiente'].includes(r.estado)
+    ).length;
     this.stats.set({ vehiculosActivos, rutasCompletadas, rutasActivas });
+  }
+
+  // --- FULLSCREEN MAP ---
+  toggleMapFullscreen() {
+    this.mapFullscreen.update(v => !v);
+    setTimeout(() => this.mapService.resizeMap(), 300); // trigger resize after CSS transition
   }
 
   toggleSidebar() { 
     this.sidebarOpen.update(v => !v);
     // Redimensionar el mapa cuando el sidebar cambia de estado
-    this.leafletMapService.resizeMap();
+    this.mapService.resizeMap();
   }
   seleccionarVehiculo(v: Vehiculo) { this.vehiculoSeleccionado.set(v); }
 
@@ -244,6 +318,10 @@ export class PrincipalComponent implements OnInit {
   }
 
   cerrarModalIngresarDireccion() { this.showIngresarDireccionModal.set(false); }
+
+  irAConductores() {
+    this.router.navigate(['/conductores']);
+  }
 
   guardarRuta() {
     const form = this.formRuta();

@@ -1,12 +1,8 @@
-.map-container {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-
-  .map {
-    width: 100%;
-    height: 100%;
-  }
+.tool-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* Deja pasar los clics al mapa debajo */
+  z-index: 1000;
 
 
   .tool-item.disabled {
@@ -17,18 +13,18 @@
 
 
   .tool-panel-horizontal {
+    pointer-events: auto; /* Reactiva los clics solo para el panel de herramientas */
     position: absolute;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    flex-direction: row; // horizontal
+    flex-direction: row;
     gap: 12px;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.547);
+    background: rgba(255, 255, 255, 0.9);
     padding: 8px 12px;
     border-radius: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
 
     .tool-item {
       display: flex;
@@ -106,6 +102,7 @@
   height: 100%;
   background: rgba(0,0,0,0.45);
   display: flex;
+  pointer-events: auto; /* Reactiva clicks para el modal */
   align-items: flex-start;
   justify-content: center;
   z-index: 9999;

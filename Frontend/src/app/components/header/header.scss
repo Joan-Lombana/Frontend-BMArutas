@@ -10,12 +10,12 @@ $hover-bg: #f9fafb;
 
 .app-header {
   height: $header-height;
-  background: $bg-white;
-  border-bottom: 1px solid $border-color;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
   display: flex;
   align-items: center;
   padding: 0 2rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
   position: sticky;
   top: 0;
   z-index: 900;
@@ -28,6 +28,7 @@ $hover-bg: #f9fafb;
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
+  padding-top: 1rem;
 }
 
 /* ===================
@@ -53,18 +54,19 @@ $hover-bg: #f9fafb;
    Page Title
    =================== */
 .page-title {
+  padding-left: 0;
   h1 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: $text-primary;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #111827;
     margin: 0;
     letter-spacing: -0.025em;
   }
   .subtitle {
-    font-size: 0.875rem;
-    color: $text-secondary;
+    font-size: 0.9rem;
+    color: #6b7280;
     margin: 0;
-    display: none; // Hide on small screens, show on large
+    display: none; 
     @media (min-width: 1024px) {
       display: block;
     }
@@ -166,15 +168,21 @@ $hover-bg: #f9fafb;
     display: flex;
     align-items: center;
     gap: 12px;
-    background: none;
-    border: none;
-    padding: 0.25rem;
-    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    color: #111827;
+    padding: 0.5rem 1rem 0.5rem 0.5rem;
+    border-radius: 30px; /* Capsule shape */
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover {
-      background: $hover-bg;
+      background: #f9fafb;
+    }
+    
+    i.fa-chevron-down {
+      color: #9ca3af;
     }
 
     /* Avatar circular o con ícono */
@@ -217,13 +225,14 @@ $hover-bg: #f9fafb;
       }
 
       .user-name {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: $text-primary;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #111827;
       }
       .user-role {
         font-size: 0.75rem;
-        color: $text-secondary;
+        color: #6b7280;
+        text-transform: capitalize;
       }
     }
   }

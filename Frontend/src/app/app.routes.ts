@@ -4,7 +4,8 @@ import { RutasComponent } from './pages/rutas/rutas';
 import { VehiculosComponent } from './pages/vehiculos/vehiculos';
 import { AuthCallback } from './components/authcallback/authcallback';
 import { NoBackLoginGuard } from './guards/no-back-login-guard';
-import { AdminGuard } from './guards/admin.guard';
+import { AuthGuard } from './guards/auth.guard';
+import { ConductoresComponent } from './pages/conductores/conductores';
 
 export const routes: Routes = [
   {
@@ -14,9 +15,10 @@ export const routes: Routes = [
     canActivate: [NoBackLoginGuard]
   },
 
-  { path: "principal", component: PrincipalComponent , canActivate: [AdminGuard]},
-  { path: "rutas", component: RutasComponent },
-  { path: "vehiculos", component: VehiculosComponent },
+  { path: "principal",   component: PrincipalComponent,   canActivate: [AuthGuard] },
+  { path: "rutas",       component: RutasComponent,       canActivate: [AuthGuard] },
+  { path: "vehiculos",   component: VehiculosComponent,   canActivate: [AuthGuard] },
+  { path: "conductores", component: ConductoresComponent, canActivate: [AuthGuard] },
 
   { path: "auth-callback", component: AuthCallback },
 
