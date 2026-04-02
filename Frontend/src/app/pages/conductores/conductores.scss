@@ -1,0 +1,69 @@
+@use "sass:color";
+$primary: #2ecc71;
+$danger: #e74c3c;
+$dark: #2c3e50;
+$light: #ecf0f1;
+$gray: #95a5a6;
+$bg: #f8f9fa;
+$white: #fff;
+
+.app-layout { display: flex; height: 100vh; background: #eef0f8; }
+.main-content { 
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
+  overflow: hidden;
+  margin-left: 72px;
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  &.sidebar-open { margin-left: 240px; } 
+}
+.dashboard { flex: 1; padding: 2rem; overflow-y: auto; background: $bg; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; 
+  h1 { font-size: 1.8rem; color: $dark; } 
+  p { color: $gray; } 
+  .btn-action { 
+    padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; border: none;
+    &.primary { background: $primary; color: $white; } 
+  }
+}
+
+.card-table { background: $white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.5rem; overflow: hidden; }
+.table-responsive { overflow-x: auto; }
+.table { 
+  width: 100%; border-collapse: collapse; text-align: left;
+  th { padding: 1rem; border-bottom: 2px solid $light; color: $gray; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
+  td { padding: 1rem; border-bottom: 1px solid $light; vertical-align: middle; }
+  tbody tr:hover { background-color: rgba($primary, 0.02); }
+  .user-info { display: flex; align-items: center; gap: 1rem;
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: rgba($primary, 0.1); color: $primary; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .user-name { font-weight: 600; color: $dark; }
+  }
+  .badge { padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.8rem; font-weight: bold;
+    &.badge-success { background: rgba($primary, 0.1); color: $primary; }
+    &.badge-danger { background: rgba($danger, 0.1); color: $danger; }
+  }
+  .btn-icon { background: none; border: none; padding: 0.5rem; border-radius: 6px; cursor: pointer; transition: 0.2s;
+    &.text-danger { color: $gray; &:hover { background: rgba($danger, 0.1); color: $danger; } }
+  }
+}
+.empty-state { text-align: center; color: $gray; padding: 2rem; }
+
+// Modales Reutilizados
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.modal-container { background: $white; padding: 2rem; border-radius: 12px; width: 450px;
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; 
+    h2 { color: $dark; font-size: 1.4rem; } 
+    .close-btn { background: none; border: none; font-size: 1.2rem; color: $gray; cursor: pointer; } 
+  }
+  .form-row { display: flex; gap: 1rem; }
+  .flex-1 { flex: 1; }
+  .form-group { margin-bottom: 1rem; 
+    label { display: block; margin-bottom: 0.5rem; color: $gray; font-size: 0.9rem; } 
+    input { width: 100%; padding: 0.75rem; border: 1px solid $light; border-radius: 8px; box-sizing: border-box; } 
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;
+    button { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .btn-cancel { background: $light; color: $dark; }
+    .btn-submit { background: $primary; color: $white; }
+  }
+}

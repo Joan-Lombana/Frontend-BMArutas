@@ -1,265 +1,286 @@
-// Variables
-$sidebar-width: 260px;
-$sidebar-bg: #111827;
-$sidebar-bg-gradient: linear-gradient(180deg, #111827 0%, #1f2937 100%);
-$text-primary: #f3f4f6;
-$text-secondary: #9ca3af;
-$accent-color: #10b981;
-$hover-bg: rgba(255, 255, 255, 0.08);
+// =============================================
+// SIDEBAR — Estilo referencia (dappr-style)
+// Botón toggle flotante en el borde derecho
+// =============================================
 
+$sidebar-width-open:   240px;
+$sidebar-width-closed:  72px;
+$navy:   #171923;
+$accent: #10b981;
+$text:   #e2e8f0;
+$muted:  #94a3b8;
+$border: rgba(255,255,255,0.07);
+
+// ---- BASE ----
 .sidebar {
-  width: $sidebar-width;
-  height: 100vh;
-  background: $sidebar-bg;
-  background: $sidebar-bg-gradient;
-  color: $text-primary;
-  padding: 1.5rem;
   position: fixed;
   left: 0;
   top: 0;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1000;
+  height: 100vh;
+  width: $sidebar-width-closed;   // cerrado por defecto
+  background: $navy;
   display: flex;
   flex-direction: column;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: visible;              // permite que el botón flote fuera
 
-  &:not(.open) {
-    width: 80px;
-    padding: 1.5rem 1rem;
+  &.open {
+    width: $sidebar-width-open;
   }
 }
 
-/* ===================
-   Marca
-   =================== */
+// ---- BOTÓN TOGGLE — anclado al borde derecho ----
+.sidebar-toggle-btn {
+  position: absolute;
+  top: 24px;
+  right: -14px;                   // sobresale hacia la derecha
+  width: 28px;
+  height: 28px;
+  background: #2d3148;
+  border: 2px solid rgba(255,255,255,0.12);
+  border-radius: 50%;
+  color: $muted;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  transition: background 0.2s, color 0.2s, transform 0.25s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+
+  &:hover {
+    background: $accent;
+    color: white;
+    border-color: $accent;
+  }
+
+  i {
+    font-size: 10px;
+    transition: transform 0.25s;
+  }
+
+  // Rota el icono cuando está abierto
+  .sidebar.open & i {
+    transform: rotate(180deg);
+  }
+}
+
+// ---- BRAND ----
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding-bottom: 2rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-  .sidebar:not(.open) & {
-    justify-content: center;
-    gap: 8px;
-  }
+  height: 64px;
+  padding: 0 1.1rem;
+  gap: 10px;
+  border-bottom: 1px solid $border;
+  overflow: hidden;
+  flex-shrink: 0;
 
   .brand-logo {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    background: $accent;
+    border-radius: 9px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: $accent-color;
-    border-radius: 10px;
     color: white;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-
-    svg {
-      width: 24px;
-      height: 24px;
-    }
+    font-size: 1rem;
+    box-shadow: 0 4px 10px rgba(16,185,129,0.3);
+    flex-shrink: 0;
   }
 
   .brand-text {
-    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 0;
+    width: 0;
+    transition: opacity 0.2s, width 0.25s;
+
+    .sidebar.open & {
+      opacity: 1;
+      width: auto;
+    }
 
     h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
       margin: 0;
-      letter-spacing: -0.025em;
-      color: white;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
     }
     p {
-      font-size: 0.75rem;
-      color: $text-secondary;
       margin: 0;
-    }
-  }
-
-  .sidebar-toggle {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    border-radius: 8px;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: $text-secondary;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-    }
-
-    i {
-      font-size: 14px;
-      transition: transform 0.3s ease;
-
-      &.fa-rotate-180 {
-        transform: rotate(180deg);
-      }
+      font-size: 0.65rem;
+      color: $muted;
     }
   }
 }
 
-/* ===================
-   Menú
-   =================== */
+// ---- NAV ----
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.75rem 0.65rem 0;
 
-  .nav-section {
-    margin-bottom: 1.5rem;
-
-    .nav-title {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: $text-secondary;
-      margin-bottom: 0.75rem;
-      padding-left: 0.75rem;
-      font-weight: 600;
-    }
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
   }
 }
 
+.nav-title {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: $muted;
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  transition: opacity 0.2s, height 0.25s, margin 0.25s;
+
+  .sidebar.open & {
+    opacity: 0.5;
+    height: 1.1rem;
+    margin-bottom: 0.35rem;
+    padding-left: 0.35rem;
+  }
+}
+
+// ---- NAV ITEM ----
 .nav-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0.75rem 1rem;
-  color: $text-secondary;
+  padding: 0.5rem;
+  border-radius: 11px;
+  margin-bottom: 4px;
+  color: $muted;
   text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  margin-bottom: 0.25rem;
-  position: relative;
+  transition: background 0.18s, color 0.18s;
   overflow: hidden;
+  white-space: nowrap;
+
+  .sidebar.open & {
+    padding: 0.5rem 0.75rem;
+  }
+
+  // Icon box
+  .nav-icon-wrap {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: 11px;
+    background: rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  }
+
+  // Label — fade in when open
+  .nav-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    transition: opacity 0.2s, max-width 0.25s;
+
+    .sidebar.open & {
+      opacity: 1;
+      max-width: 160px;
+    }
+  }
 
   &:hover {
-    background: $hover-bg;
-    color: white;
+    background: rgba(255,255,255,0.06);
+    color: $text;
+    .nav-icon-wrap { background: rgba(255,255,255,0.1); color: $text; }
   }
 
   &.active {
-    background: rgba(16, 185, 129, 0.15);
-    color: $accent-color;
-    font-weight: 500;
+    color: #fff;
+    background: rgba(255,255,255,0.06);
 
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: $accent-color;
-      border-radius: 0 4px 4px 0;
+    .nav-icon-wrap {
+      background: $accent;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(16,185,129,0.3);
     }
-  }
-
-  .nav-icon {
-    width: 20px;
-    height: 20px;
-    stroke-width: 2px;
-  }
-
-  .nav-label {
-    font-size: 0.95rem;
-  }
-
-  .nav-badge {
-    margin-left: auto;
-    background: $accent-color;
-    color: white;
-    font-size: 0.7rem;
-    padding: 0.15rem 0.5rem;
-    border-radius: 99px;
-    font-weight: 600;
   }
 }
 
-/* ===================
-   Footer
-   =================== */
+// ---- FOOTER ----
 .sidebar-footer {
-  margin-top: auto;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.65rem;
+  border-top: 1px solid $border;
+  flex-shrink: 0;
 
-  .footer-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 1rem;
+  .footer-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    transition: background 0.2s;
+    padding: 0.5rem;
+    border-radius: 11px;
     cursor: pointer;
+    color: $muted;
+    transition: background 0.2s, color 0.2s;
+    overflow: hidden;
+    white-space: nowrap;
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
+    .sidebar.open & { padding: 0.5rem 0.75rem; }
+    &:hover { background: rgba(255,255,255,0.07); color: $text; }
 
     .footer-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.1);
+      width: 38px;
+      height: 38px;
+      min-width: 38px;
+      border-radius: 11px;
+      background: rgba(255,255,255,0.05);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
+      font-size: 1rem;
+      flex-shrink: 0;
     }
 
-    .footer-text {
-      h4 {
-        font-size: 0.9rem;
-        font-weight: 600;
-        margin: 0 0 2px 0;
-        color: white;
-      }
-      p {
-        font-size: 0.75rem;
-        color: $text-secondary;
-        margin: 0;
-      }
+    .footer-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      opacity: 0;
+      max-width: 0;
+      overflow: hidden;
+      transition: opacity 0.2s, max-width 0.25s;
+
+      .sidebar.open & { opacity: 1; max-width: 160px; }
     }
   }
 }
 
-/* ===================
-   RESPONSIVE
-   =================== */
+// ---- RESPONSIVE ----
 @media (max-width: 1024px) {
   .sidebar {
     transform: translateX(-100%);
-    box-shadow: none;
-    width: $sidebar-width !important;
-    padding: 1.5rem !important;
-  }
+    width: $sidebar-width-open !important;
 
-  .sidebar.open {
-    transform: translateX(0);
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
-  }
+    &.open {
+      transform: translateX(0);
+      box-shadow: 8px 0 32px rgba(0,0,0,0.4);
+    }
 
-  .sidebar-toggle {
-    display: none;
+    // en mobile el toggle flota pero en otro lugar
+    .sidebar-toggle-btn { display: none; }
   }
 }
 
 @media (min-width: 1025px) {
-  .sidebar {
-    transform: translateX(0);
-  }
+  .sidebar { transform: translateX(0); }
 }
-

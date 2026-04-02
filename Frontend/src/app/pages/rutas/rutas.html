@@ -3,32 +3,146 @@
   <div class="main-content" [class.sidebar-open]="sidebarOpen()">
     <app-header (toggleSidebar)="toggleSidebar()"></app-header>
     <main class="page-content">
-      <div class="page-header"><h1>Gestión de Rutas</h1><p>Administra las rutas de recolección</p></div>
+      <div class="page-header">
+        <div class="header-titles">
+          <h1>Gestión de Rutas</h1>
+          <p>Administra y programa las rutas de recolección</p>
+        </div>
+      </div>
+      
+      <!-- TOOLBAR: Buscar y Filtrar -->
+      <div class="action-toolbar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Buscar ruta por nombre o zona...">
+        </div>
+        <div class="filters">
+          <select class="filter-select">
+            <option value="">Todos los Estados</option>
+            <option value="activa">Activa</option>
+            <option value="programada">Programada</option>
+          </select>
+        </div>
+      </div>
       
       <!-- Modal Editar -->
       <div class="modal-overlay" *ngIf="editando()">
         <div class="modal-box">
-          <h3>Editar Ruta</h3>
-          <div class="form-group"><label>Nombre</label><input [(ngModel)]="editando()!.nombre"></div>
-          <div class="form-group"><label>Zona</label><input [(ngModel)]="editando()!.zona"></div>
-          <div class="form-group"><label>Horario</label><input [(ngModel)]="editando()!.horario"></div>
-          <div class="actions"><button class="btn-cancel" (click)="cancelarEdicion()">Cancelar</button><button class="btn-save" (click)="guardarEdicion()">Guardar</button></div>
+          <div class="modal-header-container">
+            <h3><i class="fa-solid fa-pen-to-square"></i> Editar Ruta</h3>
+          </div>
+          <div class="form-group"><label>Nombre de la Ruta</label><input type="text" [(ngModel)]="editando()!.nombre_ruta"></div>
+          <div class="form-group"><label>Zona o Sector</label><input type="text" [(ngModel)]="editando()!.zona"></div>
+          <div class="form-group"><label>Horario</label><input type="text" [(ngModel)]="editando()!.horario"></div>
+          
+          <div class="actions">
+            <button class="btn-cancel" (click)="cancelarEdicion()">Cancelar</button>
+            <button class="btn-save" (click)="guardarEdicion()">Guardar Cambios</button>
+          </div>
         </div>
       </div>
 
-      <div class="rutas-list" *ngIf="rutas().length > 0; else noRutas">
-        <div class="ruta-card" *ngFor="let ruta of rutas()">
-          <div class="ruta-info">
-            <h3>{{ ruta.nombre }}</h3>
-            <p><i class="fa-solid fa-clock"></i> {{ ruta.horario }}</p>
-            <p><i class="fa-solid fa-map-marker-alt"></i> {{ ruta.zona }}</p>
+      <!-- Modal Programar Recorrido -->
+      <div class="modal-overlay" *ngIf="rutaAProgramar()">
+        <div class="modal-box">
+          <div class="modal-header-container">
+            <h3><i class="fa-solid fa-location-arrow"></i> Programar Asignación</h3>
+            <p style="margin: 0.2rem 0 0 0; color: #64748b; font-size: 0.9rem;">Ruta: <strong>{{ rutaAProgramar()!.nombre_ruta }}</strong></p>
           </div>
-          <div class="ruta-actions">
-            <span class="status" [class]="ruta.estado">{{ ruta.estado }}</span>
-            <button class="btn-icon" (click)="visualizarRuta(ruta)" title="Ver en mapa"><i class="fa-solid fa-eye"></i></button>
-            <button class="btn-icon" (click)="editarRuta(ruta)" title="Editar"><i class="fa-solid fa-pen"></i></button>
-            <button class="btn-icon danger" (click)="eliminarRuta(ruta)" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+          
+          <div class="form-group">
+            <label>Conductor Asignado</label>
+            <select [value]="formRecorrido().conductor_id" (change)="formRecorrido().conductor_id = $any($event.target).value">
+              <option value="" disabled selected>Seleccione un conductor...</option>
+              <option *ngFor="let c of conductores()" [value]="c.id">
+                {{ c.primerNombre }} {{ c.primerApellido }}
+              </option>
+            </select>
           </div>
+
+          <div class="form-group">
+            <label>Vehículo Asignado</label>
+            <select [value]="formRecorrido().vehiculo_id" (change)="formRecorrido().vehiculo_id = $any($event.target).value">
+              <option value="" disabled selected>Seleccione un vehículo...</option>
+              <option *ngFor="let v of vehiculosActivos()" [value]="v.id">
+                {{ v.placa }} - {{ v.modelo }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Día y Hora de Salida</label>
+            <input type="datetime-local" [value]="formRecorrido().fecha_inicio" (change)="formRecorrido().fecha_inicio = $any($event.target).value">
+          </div>
+
+          <div class="actions">
+            <button class="btn-cancel" (click)="cerrarModalProgramar()">Descartar</button>
+            <button class="btn-save" (click)="guardarPrograma()">Confirmar Viaje</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="rutas-grid" *ngIf="rutas().length > 0; else noRutas">
+        <div class="bento-route-card" *ngFor="let ruta of rutas()">
+          
+          <div class="card-top">
+            <div class="route-title">
+              <h3>{{ ruta.nombre_ruta }}</h3>
+              <ng-container *ngIf="getRecorridoActivo(ruta.id) as rec; else noRecorrido">
+                <span class="badge-status programada">Asignada</span>
+              </ng-container>
+              <ng-template #noRecorrido>
+                <span class="badge-status" [class]="ruta.estado">{{ ruta.estado || 'No programada' }}</span>
+              </ng-template>
+            </div>
+            
+            <!-- Quick Actions Menu -->
+            <div class="route-quick-tools">
+              <button class="tool-btn" (click)="visualizarRuta(ruta)" title="Ver en mapa"><i class="fa-regular fa-eye"></i></button>
+              <button class="tool-btn" (click)="editarRuta(ruta)" title="Editar"><i class="fa-solid fa-pen"></i></button>
+              <button class="tool-btn danger" (click)="eliminarRuta(ruta)" title="Eliminar"><i class="fa-regular fa-trash-can"></i></button>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="info-item">
+              <div class="icon-wrap"><i class="fa-regular fa-clock"></i></div>
+              <div class="info-text">
+                <small>Horario</small>
+                <p>{{ ruta.horario }}</p>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="icon-wrap"><i class="fa-solid fa-location-dot"></i></div>
+              <div class="info-text">
+                <small>Zona Asignada</small>
+                <p>{{ ruta.zona }}</p>
+              </div>
+            </div>
+            
+            <ng-container *ngIf="getRecorridoActivo(ruta.id) as rec">
+              <div class="assigned-info">
+                <div class="ai-box">
+                  <i class="fa-solid fa-user-check text-blue"></i>
+                  <span>{{ getNombreConductor(rec.conductor_id) }}</span>
+                </div>
+                <div class="ai-box">
+                  <i class="fa-solid fa-truck text-emerald"></i>
+                  <span>{{ getNombreVehiculo(rec.vehiculo_id) }}</span>
+                </div>
+              </div>
+            </ng-container>
+
+          </div>
+
+          <!-- PROMINENT CTA (Programar Action) -->
+          <div class="card-bottom">
+            <button class="btn-programar-viaje" (click)="abrirModalProgramar(ruta)">
+              <i class="fa-solid fa-calendar-check"></i>
+              Programar Recolección
+            </button>
+          </div>
+
         </div>
       </div>
       <ng-template #noRutas><div class="empty-state"><i class="fa-solid fa-route"></i><p>No hay rutas registradas</p></div></ng-template>
