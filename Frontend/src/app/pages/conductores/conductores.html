@@ -39,7 +39,7 @@
                         <i class="fa-solid fa-user"></i>
                       </div>
                       <div class="user-details">
-                        <span class="user-name">{{c.primerNombre}} {{c.primerApellido}}</span>
+                        <span class="user-name">{{c.primerNombre}} {{c.segundoNombre ? c.segundoNombre + ' ' : ''}}{{c.primerApellido}} {{c.segundoApellido}}</span>
                       </div>
                     </div>
                   </td>
@@ -88,15 +88,22 @@
             <input type="text" [value]="formConductor().primerNombre" (input)="formConductor().primerNombre = $any($event.target).value" required>
           </div>
           <div class="form-group flex-1">
+            <label>Segundo Nombre</label>
+            <input type="text" [value]="formConductor().segundoNombre" (input)="formConductor().segundoNombre = $any($event.target).value">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-1">
             <label>Primer Apellido *</label>
             <input type="text" [value]="formConductor().primerApellido" (input)="formConductor().primerApellido = $any($event.target).value" required>
           </div>
+          <div class="form-group flex-1">
+            <label>Segundo Apellido *</label>
+            <input type="text" [value]="formConductor().segundoApellido" (input)="formConductor().segundoApellido = $any($event.target).value" required>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>Segundo Apellido</label>
-          <input type="text" [value]="formConductor().segundoApellido" (input)="formConductor().segundoApellido = $any($event.target).value">
-        </div>
+        
 
         <div class="form-group">
           <label>Correo Electrónico *</label>

@@ -14,13 +14,17 @@
       <div class="action-toolbar">
         <div class="search-box">
           <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" placeholder="Buscar ruta por nombre o zona...">
+          <input type="text" placeholder="Buscar ruta por nombre..." [value]="buscarRuta()" (input)="buscarRuta.set($any($event.target).value)">
         </div>
         <div class="filters">
-          <select class="filter-select">
+          <select class="filter-select" [value]="filtrarEstado()" (change)="filtrarEstado.set($any($event.target).value)">
             <option value="">Todos los Estados</option>
             <option value="activa">Activa</option>
             <option value="programada">Programada</option>
+            <option value="no programada">No programada</option>
+            <option value="finalizado">Finalizado</option>
+            <option value="cancelado">Cancelado</option>
+            <option value="pausado">Pausado</option>
           </select>
         </div>
       </div>
@@ -82,18 +86,15 @@
         </div>
       </div>
 
-      <div class="rutas-grid" *ngIf="rutas().length > 0; else noRutas">
-        <div class="bento-route-card" *ngFor="let ruta of rutas()">
+      <div class="rutas-grid" *ngIf="getRutasFiltradas().length > 0; else noRutas">
+        <div class="bento-route-card" *ngFor="let ruta of getRutasFiltradas()">
           
           <div class="card-top">
             <div class="route-title">
               <h3>{{ ruta.nombre_ruta }}</h3>
-              <ng-container *ngIf="getRecorridoActivo(ruta.id) as rec; else noRecorrido">
-                <span class="badge-status programada">Asignada</span>
-              </ng-container>
-              <ng-template #noRecorrido>
-                <span class="badge-status" [class]="ruta.estado">{{ ruta.estado || 'No programada' }}</span>
-              </ng-template>
+              <span class="badge-status" [ngClass]="getEstadoRuta(ruta)">
+                {{ getEstadoRuta(ruta) | titlecase }}
+              </span>
             </div>
             
             <!-- Quick Actions Menu -->
@@ -120,18 +121,20 @@
               </div>
             </div>
             
-            <ng-container *ngIf="getRecorridoActivo(ruta.id) as rec">
-              <div class="assigned-info">
-                <div class="ai-box">
-                  <i class="fa-solid fa-user-check text-blue"></i>
-                  <span>{{ getNombreConductor(rec.conductor_id) }}</span>
-                </div>
-                <div class="ai-box">
-                  <i class="fa-solid fa-truck text-emerald"></i>
-                  <span>{{ getNombreVehiculo(rec.vehiculo_id) }}</span>
-                </div>
+            <div class="info-item">
+              <div class="icon-wrap"><i class="fa-solid fa-user-check"></i></div>
+              <div class="info-text">
+                <small>Conductor</small>
+                <p>{{ getRecorridoActivo(ruta.id)?.conductor_id ? getNombreConductor(getRecorridoActivo(ruta.id)!.conductor_id) : 'Sin asignar' }}</p>
               </div>
-            </ng-container>
+            </div>
+            <div class="info-item">
+              <div class="icon-wrap"><i class="fa-solid fa-truck"></i></div>
+              <div class="info-text">
+                <small>Vehículo</small>
+                <p>{{ getRecorridoActivo(ruta.id)?.vehiculo_id ? getNombreVehiculo(getRecorridoActivo(ruta.id)!.vehiculo_id) : 'Sin asignar' }}</p>
+              </div>
+            </div>
 
           </div>
 

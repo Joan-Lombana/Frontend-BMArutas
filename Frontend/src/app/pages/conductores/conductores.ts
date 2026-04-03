@@ -33,6 +33,7 @@ export class ConductoresComponent implements OnInit {
   showRegistrarModal = signal(false);
   formConductor = signal({
     primerNombre: '',
+    segundoNombre: '',
     primerApellido: '',
     segundoApellido: '',
     correo: '',
@@ -44,19 +45,24 @@ export class ConductoresComponent implements OnInit {
   }
 
   cargarConductores() {
-    this.usuariosService.getUsuarios().subscribe({
-      next: (resp: any) => {
-        const arr = Array.isArray(resp) ? resp : (resp.data || []);
-        // Si hay una propiedad perfil con rol, filtramos, sino mostramos todos. 
-        // Idealmente el backend debería darnos los conductores directamente o el componente lista todos
-        this.conductores.set(arr);
-      },
-      error: (err) => {
-        console.error('❌ Error cargando usuarios:', err);
-        this.conductores.set([]);
-      }
-    });
-  }
+  this.usuariosService.getUsuarios().subscribe({
+    next: (resp: any) => {
+      const arr = Array.isArray(resp) ? resp : (resp.data || []);
+
+      console.log('USUARIOS:', arr); // 👈 déjalo para verificar
+
+      const conductoresFiltrados = arr.filter(
+        (usuario: any) => usuario.perfil?.rol?.tipo === 'conductor'
+      );
+
+      this.conductores.set(conductoresFiltrados);
+    },
+    error: (err) => {
+      console.error('❌ Error cargando usuarios:', err);
+      this.conductores.set([]);
+    }
+  });
+}
 
   toggleSidebar() {
     this.sidebarOpen.update(v => !v);
@@ -65,6 +71,7 @@ export class ConductoresComponent implements OnInit {
   abrirModalRegistrar() {
     this.formConductor.set({
       primerNombre: '',
+      segundoNombre: '',
       primerApellido: '',
       segundoApellido: '',
       correo: '',
@@ -80,7 +87,7 @@ export class ConductoresComponent implements OnInit {
   guardarConductor() {
     const form = this.formConductor();
     
-    if (!form.primerNombre || !form.primerApellido || !form.correo || !form.password) {
+    if (!form.primerNombre || !form.primerApellido || !form.segundoApellido || !form.correo || !form.password) {
       alert('Completa los campos obligatorios (*)');
       return;
     }

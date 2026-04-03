@@ -31,6 +31,8 @@ export class RutasComponent implements OnInit {
 
   sidebarOpen = signal(true);
   rutas = signal<Ruta[]>([]);
+  filtrarEstado = signal<string>('');
+  buscarRuta = signal<string>('');
   vehiculosActivos = signal<any[]>([]);
   conductores = signal<any[]>([]);
   
@@ -77,6 +79,45 @@ export class RutasComponent implements OnInit {
     return v ? `${v.placa}` : 'Vehículo';
   }
 
+  getNombreConductorPorRuta(rutaId: string) {
+    const rec = this.getRecorridoActivo(rutaId);
+    return rec?.conductor_id ? this.getNombreConductor(rec.conductor_id) : '';
+  }
+
+  getNombreVehiculoPorRuta(rutaId: string) {
+    const rec = this.getRecorridoActivo(rutaId);
+    return rec?.vehiculo_id ? this.getNombreVehiculo(rec.vehiculo_id) : '';
+  }
+
+  getEstadoRuta(ruta: Ruta) {
+    // Prioridad: campo ruta.estado -> recorrido activo -> no programada
+    const estadoRuta = ruta.estado?.toString().trim().toLowerCase();
+    if (estadoRuta) {
+      return estadoRuta;
+    }
+
+    const rec = this.getRecorridoActivo(ruta.id);
+    if (rec?.estado) {
+      return rec.estado.toString().trim().toLowerCase();
+    }
+
+    return 'no programada';
+  }
+
+  getRutasFiltradas() {
+    const estadoFiltro = this.filtrarEstado().trim().toLowerCase();
+    const busqueda = this.buscarRuta().trim().toLowerCase();
+
+    return this.rutas().filter((ruta) => {
+      const estadoRuta = this.getEstadoRuta(ruta).toLowerCase();
+
+      const aplicarEstado = !estadoFiltro || estadoRuta === estadoFiltro;
+      const aplicarBusqueda = !busqueda || ruta.nombre_ruta.toLowerCase().includes(busqueda);
+
+      return aplicarEstado && aplicarBusqueda;
+    });
+  }
+
   cargarDatosDesplegables() {
     this.vehiculosService.getVehiculos(this.perfilId).subscribe({
       next: (resp: any) => {
@@ -86,11 +127,18 @@ export class RutasComponent implements OnInit {
     });
 
     this.usuariosService.getUsuarios().subscribe({
-      next: (resp: any) => {
-        const arr = Array.isArray(resp) ? resp : (resp.data || []);
-        this.conductores.set(arr.filter((u: any) => u.activo));
-      }
-    });
+  next: (resp: any) => {
+    const arr = Array.isArray(resp) ? resp : (resp.data || []);
+
+    console.log('👤 Usuarios:', arr); // 👈 útil para debug
+
+    this.conductores.set(
+      arr.filter((u: any) => 
+        u.activo && u.perfil?.rol?.tipo === 'conductor'
+      )
+    );
+  }
+});
   }
 
   cargarRutas() {
