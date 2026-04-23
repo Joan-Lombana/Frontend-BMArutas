@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient} from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -11,11 +11,11 @@ export class RecorridosService {
   // -------------------------------
   // 📌 Programar Recorrido (Crear)
   // -------------------------------
-  programarRecorrido(datos: any, perfilId: string) {
+  programarRecorrido(datos: any) {
     // El payload debe contener ruta_id, vehiculo_id, conductor_id, horario_inicio
     const payload = {
       ...datos,
-      perfil_id: perfilId // Perfil del admin creando esto
+      
     };
     console.log("📤 POST ->", `${this.baseUrl}/recorridos/crear`, payload);
     return this.http.post(`${this.baseUrl}/recorridos/crear`, payload);
@@ -24,10 +24,10 @@ export class RecorridosService {
   // -------------------------------
   // 📌 Listar Recorridos
   // -------------------------------
-  getRecorridos(perfilId: string) {
-    const params = new HttpParams().set('perfil_id', perfilId);
-    console.log("📥 GET ->", `${this.baseUrl}/recorridos`, "params:", params.toString());
-    return this.http.get(`${this.baseUrl}/recorridos`, { params });
+  getRecorridos() {
+    
+    console.log("📥 GET ->", `${this.baseUrl}/recorridos/local`);
+    return this.http.get(`${this.baseUrl}/recorridos/local` );
   }
 
   // -------------------------------

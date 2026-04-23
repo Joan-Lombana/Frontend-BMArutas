@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -11,38 +11,32 @@ export class VehiculosService {
   // -------------------------------
   // 📌 Crear vehículo
   // -------------------------------
-  registrarVehiculo(vehiculo: any, perfilId: string) {
-    const body = { ...vehiculo, perfil_id: perfilId };
-
-    console.log("📤 POST ->", `${this.baseUrl}/vehiculos/crear`, body);
-    return this.http.post(`${this.baseUrl}/vehiculos/crear`, body);
+  registrarVehiculo(vehiculo: any) {
+    console.log("📤 POST ->", `${this.baseUrl}/vehiculos/crear`, vehiculo);
+    return this.http.post(`${this.baseUrl}/vehiculos/crear`, vehiculo);
   }
 
   // -------------------------------
-  // 📌 Listar vehículos por perfil
+  // 📌 Listar vehículos
   // -------------------------------
-  getVehiculos(perfilId: string) {
-    const params = new HttpParams().set('perfil_id', perfilId);
-
-    console.log("📥 GET ->", `${this.baseUrl}/vehiculos`, "params:", params.toString());
-    return this.http.get(`${this.baseUrl}/vehiculos`, { params });
+  getVehiculos() {
+    console.log("📥 GET ->", `${this.baseUrl}/vehiculos`);
+    return this.http.get(`${this.baseUrl}/vehiculos`);
   }
 
   // -------------------------------
   // 📌 Actualizar vehículo
   // -------------------------------
-  actualizarVehiculo(vehiculoId: string, datos: any, perfilId: string) {
-      const params = new HttpParams().set('perfil_id', perfilId);
-      console.log("✏️ PUT ->", `${this.baseUrl}/vehiculos/${vehiculoId}`, "body:", datos, "perfil_id:", perfilId);
-      return this.http.put(`${this.baseUrl}/vehiculos/${vehiculoId}`, datos, { params });
-    }
+  actualizarVehiculo(vehiculoId: string, datos: any) {
+    console.log("✏️ PUT ->", `${this.baseUrl}/vehiculos/${vehiculoId}`, datos);
+    return this.http.put(`${this.baseUrl}/vehiculos/${vehiculoId}`, datos);
+  }
 
   // -------------------------------
   // 📌 Eliminar vehículo
   // -------------------------------
-  eliminarVehiculo(vehiculoId: string, perfilId: string) {
-    const params = new HttpParams().set('perfil_id', perfilId);
-    console.log("🗑️ DELETE ->", `${this.baseUrl}/vehiculos/${vehiculoId}`, "perfil_id:", perfilId);
-    return this.http.delete(`${this.baseUrl}/vehiculos/${vehiculoId}`, { params });
+  eliminarVehiculo(vehiculoId: string) {
+    console.log("🗑️ DELETE ->", `${this.baseUrl}/vehiculos/${vehiculoId}`);
+    return this.http.delete(`${this.baseUrl}/vehiculos/${vehiculoId}`);
   }
 }

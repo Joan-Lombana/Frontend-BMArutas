@@ -124,7 +124,7 @@ export class PrincipalComponent implements OnInit {
   // CARGAR RUTAS
   // ---------------------------------------------------------
   cargarRutas() {
-    this.rutasService.getRutas(this.perfilId).subscribe({
+    this.rutasService.getRutas().subscribe({
       
       next: (resp: any) => {
         console.log("📥 Rutas recibidas:", resp);
@@ -207,7 +207,7 @@ export class PrincipalComponent implements OnInit {
   // VEHÍCULOS
   // ---------------------------------------------------------
   cargarVehiculos() {
-    this.vehiculosService.getVehiculos(this.perfilId).subscribe({
+    this.vehiculosService.getVehiculos().subscribe({
       next: (resp: any) => {
         console.log('📥 Vehículos:', resp);
         const arr = Array.isArray(resp) ? resp : (resp.data || []);
@@ -233,7 +233,7 @@ export class PrincipalComponent implements OnInit {
   }
 
   cargarRecorridos() {
-    this.recorridosService.getRecorridos(this.perfilId).subscribe({
+    this.recorridosService.getRecorridos().subscribe({
       next: (resp: any) => {
         console.log('📥 Recorridos RAW (crudo del backend):', JSON.stringify(resp));
         const arr: Recorrido[] = Array.isArray(resp) ? resp : (resp.data || []);
@@ -347,7 +347,7 @@ export class PrincipalComponent implements OnInit {
       return; 
     }
 
-    this.vehiculosService.registrarVehiculo(form, this.perfilId).subscribe({
+    this.vehiculosService.registrarVehiculo(form, ).subscribe({
       next: () => { 
         this.cargarVehiculos(); 
         this.cerrarModalRegistrarVehiculo(); 

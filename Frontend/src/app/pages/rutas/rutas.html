@@ -140,9 +140,9 @@
 
           <!-- PROMINENT CTA (Programar Action) -->
           <div class="card-bottom">
-            <button class="btn-programar-viaje" (click)="abrirModalProgramar(ruta)">
-              <i class="fa-solid fa-calendar-check"></i>
-              Programar Recolección
+            <button class="btn-programar-viaje" [ngClass]="{'btn-cancelar': isProgramada(ruta)}" (click)="isProgramada(ruta) ? cancelarRecorrido(ruta) : abrirModalProgramar(ruta)">
+              <i class="fa-solid" [class.fa-calendar-check]="!isProgramada(ruta)" [class.fa-times]="isProgramada(ruta)"></i>
+              {{ isProgramada(ruta) ? 'Cancelar Recorrido' : 'Programar Recolección' }}
             </button>
           </div>
 

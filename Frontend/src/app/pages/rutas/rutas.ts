@@ -23,7 +23,7 @@ interface Ruta {
   styleUrls: ['./rutas.scss']
 })
 export class RutasComponent implements OnInit {
-  private perfilId = 'bcadd725-99a9-458f-bb7f-2eea173c0eb3';
+
   private rutasService = inject(RutasService);
   private vehiculosService = inject(VehiculosService);
   private usuariosService = inject(UsuariosService);
@@ -51,7 +51,7 @@ export class RutasComponent implements OnInit {
   }
 
   cargarRecorridos() {
-    this.recorridosService.getRecorridos(this.perfilId).subscribe({
+    this.recorridosService.getRecorridos().subscribe({
       next: (resp: any) => {
         const arr = Array.isArray(resp) ? resp : (resp.data || []);
         console.log('🛣️ [Rutas Page] Recorridos cargados:', arr.length);
@@ -65,10 +65,15 @@ export class RutasComponent implements OnInit {
   }
 
   getRecorridoActivo(rutaId: string) {
-    // Retorna el recorrido activo para la ruta actual (incluye todos los estados válidos de la API)
-    return this.recorridos().find(r => r.ruta_id === rutaId && ['programado', 'en_curso', 'activo', 'asignado', 'iniciado', 'pendiente'].includes(r.estado));
-  }
+    return this.recorridos().find(r => {
+      const estado = r.estado?.toLowerCase();
 
+      return (
+        r.ruta_id === rutaId &&
+        ['programada', 'activa', 'pausado'].includes(estado)
+      );
+    });
+  }
   getNombreConductor(conductorId: string) {
     const c = this.conductores().find(x => x.id === conductorId);
     return c ? `${c.primerNombre || ''} ${c.primerApellido || ''}` : 'Conductor';
@@ -89,19 +94,22 @@ export class RutasComponent implements OnInit {
     return rec?.vehiculo_id ? this.getNombreVehiculo(rec.vehiculo_id) : '';
   }
 
-  getEstadoRuta(ruta: Ruta) {
-    // Prioridad: campo ruta.estado -> recorrido activo -> no programada
-    const estadoRuta = ruta.estado?.toString().trim().toLowerCase();
-    if (estadoRuta) {
-      return estadoRuta;
-    }
+   getEstadoRuta(ruta: Ruta) {
+  const rec = this.getRecorridoActivo(ruta.id);
 
-    const rec = this.getRecorridoActivo(ruta.id);
-    if (rec?.estado) {
-      return rec.estado.toString().trim().toLowerCase();
-    }
+  console.log('🔍 Ruta:', ruta.id, '| Recorrido encontrado:', rec);
 
-    return 'no programada';
+  if (rec?.estado) {
+    console.log('✅ Estado del recorrido:', rec.estado);
+    return rec.estado.toString().trim().toLowerCase();
+  }
+
+  console.log('⚠️ Sin recorrido para la ruta:', ruta.id);
+  return 'no programada';
+}
+
+  isProgramada(ruta: Ruta): boolean {
+    return !!this.getRecorridoActivo(ruta.id);
   }
 
   getRutasFiltradas() {
@@ -119,7 +127,7 @@ export class RutasComponent implements OnInit {
   }
 
   cargarDatosDesplegables() {
-    this.vehiculosService.getVehiculos(this.perfilId).subscribe({
+    this.vehiculosService.getVehiculos().subscribe({
       next: (resp: any) => {
         const arr = Array.isArray(resp) ? resp : (resp.data || []);
         this.vehiculosActivos.set(arr.filter((v: any) => v.activo));
@@ -142,7 +150,7 @@ export class RutasComponent implements OnInit {
   }
 
   cargarRutas() {
-    this.rutasService.getRutas(this.perfilId).subscribe({
+    this.rutasService.getRutas().subscribe({
       next: (resp: any) => {
         const arr = Array.isArray(resp) ? resp : (resp.data || resp.rutas || []);
         this.rutas.set(arr);
@@ -215,10 +223,9 @@ export class RutasComponent implements OnInit {
       vehiculo_id: f.vehiculo_id,
       conductor_id: f.conductor_id,
       horario_inicio: fechaISO,  // <-- Formato válido ISO obligatorio para backends estrictos
-      estado: 'programado'
     };
 
-    this.recorridosService.programarRecorrido(payload, this.perfilId).subscribe({
+    this.recorridosService.programarRecorrido(payload).subscribe({
       next: () => {
         this.cerrarModalProgramar();
         this.cargarRutas(); // Refrescar para ver si cambia el estado
@@ -230,6 +237,20 @@ export class RutasComponent implements OnInit {
         alert('Error programando el recorrido: Verifica los datos o la consola.');
       }
     });
+  }
+
+  cancelarRecorrido(ruta: Ruta) {
+    const rec = this.getRecorridoActivo(ruta.id);
+    if (rec && confirm('¿Cancelar el recorrido programado?')) {
+      this.recorridosService.eliminarRecorrido(rec.id).subscribe({
+        next: () => {
+          this.cargarRecorridos();
+          this.cargarRutas();
+          alert('Recorrido cancelado exitosamente');
+        },
+        error: () => alert('Error cancelando el recorrido')
+      });
+    }
   }
 
   visualizarRuta(ruta: Ruta) {

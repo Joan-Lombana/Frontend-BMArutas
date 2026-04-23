@@ -23,7 +23,7 @@ interface Vehiculo {
 export class VehiculosComponent implements OnInit {
 
   private vehiculosService = inject(VehiculosService);
-  private perfilId = 'bcadd725-99a9-458f-bb7f-2eea173c0eb3';
+  private perfilId = 'a0a5a0dc-10c0-4c69-b1b4-bc7509ca003c';
 
   sidebarOpen = signal(true);
   vehiculos = signal<Vehiculo[]>([]);
@@ -34,7 +34,7 @@ export class VehiculosComponent implements OnInit {
   }
 
   cargarVehiculos() {
-    this.vehiculosService.getVehiculos(this.perfilId).subscribe({
+    this.vehiculosService.getVehiculos().subscribe({
       next: (resp: any) => {
         const arr = Array.isArray(resp) ? resp : (resp.data || resp.vehiculos || []);
         this.vehiculos.set(arr);
@@ -51,7 +51,7 @@ export class VehiculosComponent implements OnInit {
     console.log('🟢 Intentando eliminar vehículo:', v);
     if (confirm(`¿Eliminar vehículo ${v.placa}?`)) {
       console.log('✅ Confirmado eliminar vehículo ID:', v.id);
-      this.vehiculosService.eliminarVehiculo(v.id, this.perfilId).subscribe({  // <- PASAR perfilId
+      this.vehiculosService.eliminarVehiculo(v.id, ).subscribe({  // <- PASAR perfilId
         next: () => {
           console.log('🚀 Vehículo eliminado correctamente');
           this.cargarVehiculos();
@@ -83,7 +83,7 @@ export class VehiculosComponent implements OnInit {
     const v = this.editando();
     if (!v) return;
 
-    this.vehiculosService.actualizarVehiculo(v.id, v, this.perfilId).subscribe({ // <- PASAR perfilId
+    this.vehiculosService.actualizarVehiculo(v.id, v).subscribe({ // <- PASAR perfilId
       next: () => {
         this.editando.set(null);
         this.cargarVehiculos();

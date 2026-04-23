@@ -60,15 +60,19 @@ export class HeaderComponent implements OnInit {
   unreadCount = signal(2);
 
   ngOnInit() {
-  if (!this.currentUser()) { // Si no hay usuario
+
+  if (!this.authService.currentUser()) {
     this.authService.getProfile().subscribe({
       next: (user) => {
         console.log('Perfil cargado', user);
-        this.authService.currentUser.set(user); // ← asigna la signal
+
+        this.authService.currentUser.set(user);
+        localStorage.setItem('usuario', JSON.stringify(user));
       },
       error: () => console.log('No hay sesión activa')
     });
   }
+
 }
 
 
