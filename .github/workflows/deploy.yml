@@ -55,15 +55,23 @@ jobs:
       - name: 🚚 Desplegar frontend
         run: |
           echo "📤 Subiendo frontend..."
-          
-          scp -o StrictHostKeyChecking=no -r Frontend/dist/* ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/eco_frontend/
 
-          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+          'mkdir -p /tmp/eco_frontend/'
+
+          scp -o StrictHostKeyChecking=no -r Frontend/dist/ \
+          ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/eco_frontend/
+
+          ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
             echo "🧹 Limpiando carpeta web..."
-            rm -rf /var/www/frontend/*
-            cp -r /tmp/eco_frontend/. /var/www/frontend/
+            sudo rm -rf /var/www/frontend/*
+            sudo cp -r /tmp/eco_frontend/. /var/www/frontend/
+
             echo "🔄 Reiniciando nginx..."
-            systemctl restart nginx
+            sudo systemctl restart nginx
+
             echo "✅ Deploy completado"
           '
 
