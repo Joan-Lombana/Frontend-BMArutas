@@ -60,7 +60,7 @@ jobs:
             echo "🧹 Limpiando /var/www/frontend..."
             rm -rf /var/www/frontend/*
             ls -l /tmp/eco_frontend/
-            mv /tmp/eco_frontend/* /var/www/frontend
+            cp -r /tmp/eco_frontend/. /var/www/frontend/
             chown -R www-data:www-data /var/www/frontend
             chmod -R 755 /var/www/frontend
             systemctl restart apache2 || sudo systemctl restart nginx
