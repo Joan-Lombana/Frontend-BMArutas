@@ -57,12 +57,12 @@ jobs:
           echo "📤 Subiendo frontend al servidor..."
           scp -o StrictHostKeyChecking=no -r Frontend/dist/Frontend/browser/* ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/eco_frontend/
           ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
-            echo "🧹 Limpiando /var/www/joan_site/frontend..."
-            rm -rf /var/www/joan_site/frontend/*
+            echo "🧹 Limpiando /var/www/frontend..."
+            rm -rf /var/www/frontend/*
             ls -l /tmp/eco_frontend/
-            mv /tmp/eco_frontend/* /var/www/joan_site/frontend
-            chown -R www-data:www-data /var/www/joan_site/frontend
-            chmod -R 755 /var/www/joan_site/frontend
+            mv /tmp/eco_frontend/* /var/www/frontend
+            chown -R www-data:www-data /var/www/frontend
+            chmod -R 755 /var/www/frontend
             systemctl restart apache2 || sudo systemctl restart nginx
             echo "✅ Frontend desplegado correctamente."
           '
