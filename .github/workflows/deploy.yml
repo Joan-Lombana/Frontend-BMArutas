@@ -38,7 +38,9 @@ jobs:
       # -------------------------------
       - name: 🏗️ Compilar Angular
         working-directory: ./Frontend
-        run: npm run build -- --configuration production --base-href /
+        run: |
+          rm -rf dist
+          npm run build -- --configuration production --base-href /
 
 
       # -------------------------------
