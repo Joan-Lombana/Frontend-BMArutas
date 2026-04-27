@@ -62,7 +62,7 @@ jobs:
           ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
           'mkdir -p /tmp/eco_frontend/'
 
-          scp -o StrictHostKeyChecking=no -r Frontend/dist/broeser/* \
+          scp -o StrictHostKeyChecking=no -r Frontend/dist/browser/* \
           ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/eco_frontend/
 
           ssh -o StrictHostKeyChecking=no \
