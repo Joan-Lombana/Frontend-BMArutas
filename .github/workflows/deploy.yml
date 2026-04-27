@@ -37,10 +37,10 @@ jobs:
       # 4️⃣ Compilar Angular (producción)
       # -------------------------------
       - name: 🏗️ Compilar Angular
-        working-directory: ./Frontend
-        run: |
-          rm -rf dist
-          npm run build -- --configuration production --base-href /
+        working-directory: ./Frontend 
+        run: | 
+         rm -rf dist
+         npm run build -- --configuration production --base-href /
 
 
       # -------------------------------
@@ -56,25 +56,17 @@ jobs:
       # -------------------------------
       - name: 🚚 Desplegar frontend
         run: |
-          echo "📤 Subiendo frontend..."
-
-          ssh -o StrictHostKeyChecking=no \
-          ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-          'mkdir -p /tmp/eco_frontend/'
-
-          scp -o StrictHostKeyChecking=no -r Frontend/dist/Frontend/browser/* \
-          ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/eco_frontend/
-
-          ssh -o StrictHostKeyChecking=no \
-          ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
-            echo "🧹 Limpiando carpeta web..."
-            sudo rm -rf /var/www/frontend/*
-            sudo cp -r /tmp/eco_frontend/. /var/www/frontend/
-
-            echo "🔄 Reiniciando nginx..."
-            sudo systemctl restart nginx
-
-            echo "✅ Deploy completado"
+          echo "📤 Subiendo frontend al servidor..."
+          scp -o StrictHostKeyChecking=no -r Frontend/dist/Frontend/browser/* ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/eco_frontend/
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} '
+            echo "🧹 Limpiando /var/www/frontend..."
+            rm -rf /var/www/frontend/*
+            ls -l /tmp/eco_frontend/
+            cp -r /tmp/eco_frontend/. /var/www/frontend/
+            chown -R www-data:www-data /var/www/frontend
+            chmod -R 755 /var/www/frontend
+            systemctl restart apache2 || sudo systemctl restart nginx
+            echo "✅ Frontend desplegado correctamente."
           '
 
      
