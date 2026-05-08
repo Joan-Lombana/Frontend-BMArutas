@@ -93,7 +93,7 @@
             <div class="route-title">
               <h3>{{ ruta.nombre_ruta }}</h3>
               <span class="badge-status" [ngClass]="getEstadoRuta(ruta)">
-                {{ getEstadoRuta(ruta) | titlecase }}
+                {{ getEstadoRutaLabel(ruta) }}
               </span>
             </div>
             
@@ -140,9 +140,21 @@
 
           <!-- PROMINENT CTA (Programar Action) -->
           <div class="card-bottom">
-            <button class="btn-programar-viaje" [ngClass]="{'btn-cancelar': isProgramada(ruta)}" (click)="isProgramada(ruta) ? cancelarRecorrido(ruta) : abrirModalProgramar(ruta)">
-              <i class="fa-solid" [class.fa-calendar-check]="!isProgramada(ruta)" [class.fa-times]="isProgramada(ruta)"></i>
-              {{ isProgramada(ruta) ? 'Cancelar' : 'Programar Recorrido' }}
+            <button
+              class="btn-programar-viaje"
+              [ngClass]="{
+                'btn-cancelar': isProgramada(ruta),
+                'btn-disabled': isActiva(ruta) || isPausado(ruta)
+              }"
+              [disabled]="isActiva(ruta) || isPausado(ruta)"
+              (click)="isProgramada(ruta) ? cancelarRecorrido(ruta) : abrirModalProgramar(ruta)">
+              <i
+                class="fa-solid"
+                [class.fa-calendar-check]="!isProgramada(ruta) && !isActiva(ruta) && !isPausado(ruta)"
+                [class.fa-times]="isProgramada(ruta)"
+                [class.fa-spinner]="isActiva(ruta) || isPausado(ruta)">
+              </i>
+              {{ isActiva(ruta) ? 'En curso' : isPausado(ruta) ? 'Pausado' : isProgramada(ruta) ? 'Cancelar' : 'Programar Recorrido' }}
             </button>
           </div>
 
