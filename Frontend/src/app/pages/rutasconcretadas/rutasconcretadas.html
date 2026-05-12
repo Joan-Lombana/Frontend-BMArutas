@@ -1,0 +1,218 @@
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <app-sidebar
+    [isOpen]="sidebarOpen()"
+    (closeSidebar)="toggleSidebar()">
+  </app-sidebar>
+
+  <!-- MAIN -->
+  <div
+    class="main-content"
+    [class.sidebar-open]="sidebarOpen()">
+
+    <app-header
+      (toggleSidebar)="toggleSidebar()">
+    </app-header>
+
+    <main class="page-content">
+
+      <!-- HEADER -->
+      <div class="page-header">
+
+        <div class="header-titles">
+          <h1>Rutas Concretadas</h1>
+          <p>
+            Historial de recorridos finalizados y trazabilidad operativa
+          </p>
+        </div>
+
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="action-toolbar">
+
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+
+          <input
+            type="text"
+            placeholder="Buscar ruta..."
+            [value]="buscarRuta()"
+            (input)="buscarRuta.set($any($event.target).value)">
+        </div>
+
+      </div>
+
+      <!-- GRID -->
+      <div
+        class="historial-grid"
+        *ngIf="getRecorridosFiltrados().length > 0; else emptyState">
+
+        <div
+          class="historial-card"
+          *ngFor="let recorrido of getRecorridosFiltrados()">
+
+          <!-- TOP -->
+          <div class="card-top">
+
+            <div class="route-title">
+
+              <h3>
+                {{ getNombreRuta(recorrido.ruta_id) }}
+              </h3>
+
+              <span class="badge-status finalizado">
+                FINALIZADO
+              </span>
+
+            </div>
+
+            <button
+              class="tool-btn"
+              title="Ver detalles"
+              (click)="visualizarRecorrido(recorrido)">
+
+              <i class="fa-regular fa-eye"></i>
+
+            </button>
+
+          </div>
+
+          <!-- BODY -->
+          <div class="card-body">
+
+            <div class="info-item">
+
+              <div class="icon-wrap">
+                <i class="fa-solid fa-user"></i>
+              </div>
+
+              <div class="info-text">
+                <small>Conductor</small>
+
+                <p>
+                  {{ getNombreConductor(recorrido.conductor_id) }}
+                </p>
+              </div>
+
+            </div>
+
+            <div class="info-item">
+
+              <div class="icon-wrap">
+                <i class="fa-solid fa-truck"></i>
+              </div>
+
+              <div class="info-text">
+                <small>Vehículo</small>
+
+                <p>
+                  {{ getNombreVehiculo(recorrido.vehiculo_id) }}
+                </p>
+              </div>
+
+            </div>
+
+            <div class="info-item">
+
+              <div class="icon-wrap">
+                <i class="fa-regular fa-clock"></i>
+              </div>
+
+              <div class="info-text">
+                <small>Fecha Inicio</small>
+
+                <p>
+                  {{ recorrido.createdAt | date:'short' }}
+                </p>
+              </div>
+
+            </div>
+
+            <div class="info-item">
+
+              <div class="icon-wrap">
+                <i class="fa-solid fa-flag-checkered"></i>
+              </div>
+
+              <div class="info-text">
+                <small>Fecha Finalización</small>
+
+                <p>
+                  {{ recorrido.updatedAt | date:'short' }}
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- TIMELINE -->
+          <div class="timeline-container">
+
+            <div class="timeline-title">
+              <i class="fa-solid fa-timeline"></i>
+              Historial de Eventos
+            </div>
+
+            <div
+              class="timeline-event"
+              *ngFor="let evento of recorrido.eventos">
+
+              <div class="timeline-dot"></div>
+
+              <div class="timeline-content">
+
+                <div class="timeline-header">
+
+                  <span class="evento-tipo">
+                    {{ evento.tipo }}
+                  </span>
+
+                  <span class="evento-fecha">
+                    {{ evento.createdAt | date:'short' }}
+                  </span>
+
+                </div>
+
+                <div
+                  class="evento-payload"
+                  *ngIf="evento.payload">
+
+                  <pre>
+{{ evento.payload | json }}
+                  </pre>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- EMPTY -->
+      <ng-template #emptyState>
+
+        <div class="empty-state">
+
+          <i class="fa-solid fa-route"></i>
+
+          <p>
+            No hay recorridos finalizados
+          </p>
+
+        </div>
+
+      </ng-template>
+
+    </main>
+
+  </div>
+
+</div>
