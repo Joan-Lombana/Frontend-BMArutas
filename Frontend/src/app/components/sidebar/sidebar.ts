@@ -20,11 +20,12 @@ export class SidebarComponent {
   toggleSidebar = output<void>();
 
   menuItems: MenuItem[] = [
-    { label: 'Principal', route: '/principal', icon: 'dashboard' },
-    { label: 'Rutas programadas', route: '/rutas', icon: 'route' },
-    { label: 'Vehículos', route: '/vehiculos', icon: 'truck' },
-    { label: 'Conductores', route: '/conductores', icon: 'users' },
-    { label: 'Rutas Concretadas', route: '/rutas-concretadas', icon: 'check-circle' }
+    { label: 'Principal',        route: '/principal',         icon: 'dashboard' },
+    { label: 'Rutas programadas', route: '/rutas',             icon: 'route' },
+    { label: 'Vehículos',         route: '/vehiculos',         icon: 'truck' },
+    { label: 'Conductores',       route: '/conductores',       icon: 'users' },
+    { label: 'Rutas Concretadas', route: '/rutas-concretadas', icon: 'check-circle' },
+    { label: 'Incidencias',       route: '/incidencias',       icon: 'warning' }
   ];
 
   onNavigate() {

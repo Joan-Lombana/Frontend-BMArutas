@@ -1,19 +1,19 @@
 @use "sass:color";
-$primary: #2ecc71; $danger: #e74c3c; $dark: #2c3e50; $light: #ecf0f1; $gray: #95a5a6; $bg: #f8f9fa; $white: #fff;
+$primary: var(--color-primary); $danger: #e74c3c; $dark: var(--color-text); $light: var(--border-color); $gray: var(--color-text-light); $bg: var(--bg-main); $white: var(--bg-card);
 
-.app-layout { display: flex; height: 100vh; background: $bg; }
+.app-layout { display: flex; height: 100vh; background: var(--bg-main); }
 .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; &.sidebar-open { @media (min-width: 1024px) { margin-left: 260px; } } }
 .page-content { flex: 1; padding: 2rem; overflow-y: auto; }
 .page-header { margin-bottom: 2rem; h1 { font-size: 1.8rem; color: $dark; } p { color: $gray; } }
 
 .vehiculos-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem; }
 .vehiculo-card {
-  background: $white; border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  .vehiculo-icon { width: 50px; height: 50px; background: rgba($primary, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: $primary; font-size: 1.5rem; }
-  .vehiculo-info { flex: 1; h3 { color: $dark; margin-bottom: 0.25rem; } p { color: $gray; font-size: 0.9rem; } }
-  .status { padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.8rem; &.activo { background: rgba($primary, 0.1); color: $primary; } &.inactivo { background: rgba($danger, 0.1); color: $danger; } }
+  background: #fff; border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;
+  .vehiculo-icon { width: 50px; height: 50px; background: rgba(99, 144, 214, 0.12); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #6390D6; font-size: 1.5rem; }
+  .vehiculo-info { flex: 1; h3 { color: #1a2035; margin-bottom: 0.25rem; } p { color: #64748b; font-size: 0.9rem; } }
+  .status { padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.8rem; font-weight: 600; &.activo { background: rgba(99, 144, 214, 0.12); color: #6390D6; } &.inactivo { background: rgba(239,68,68, 0.1); color: #ef4444; } }
   .vehiculo-actions { display: flex; gap: 0.5rem;
-    .btn-icon { width: 36px; height: 36px; border: none; border-radius: 8px; background: $light; color: $dark; cursor: pointer; &:hover { background: $primary; color: $white; } &.danger:hover { background: $danger; } }
+    .btn-icon { width: 36px; height: 36px; border: none; border-radius: 8px; background: #f0f2f5; color: #1a2035; cursor: pointer; &:hover { background: #6390D6; color: #fff; } &.danger:hover { background: #ef4444; } }
   }
 }
 .empty-state { text-align: center; padding: 3rem; color: $gray; i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; display: block; } }

@@ -10,6 +10,7 @@ import { RutasService } from '../../services/rutas.services';
 import { RecorridosService } from '../../services/recorridos.services';
 import { UsuariosService } from '../../services/usuarios.services';
 import { LeafletMapService } from '../../services/leaflet-map.services';
+import { WebSocketService } from '../../services/websocket.service';
 
 
 interface Ruta { 
@@ -85,6 +86,9 @@ export class PrincipalComponent implements OnInit {
   private router = inject(Router);
   private perfilId = 'bcadd725-99a9-458f-bb7f-2eea173c0eb3';
   private mapService = inject(LeafletMapService);
+  private webSocketService = inject(WebSocketService);
+  
+  private recorridoActivoId: string | null = null;
 
   sidebarOpen = signal(false);
   vehiculoSeleccionado = signal<Vehiculo | null>(null);
@@ -118,6 +122,51 @@ export class PrincipalComponent implements OnInit {
     this.cargarVehiculos();
     this.cargarConductores();
     this.cargarRecorridos();
+
+    // Escuchar posiciones en tiempo real
+    this.webSocketService.onPosicion((pos: any) => {
+      console.log('📍 Posición en vivo recibida:', pos);
+      if (pos.latitud && pos.longitud) {
+        this.mapService.updateDriverPosition(pos.latitud, pos.longitud);
+      }
+    });
+
+    // Escuchar cambios de estado de los recorridos
+    this.webSocketService.onEstadoRecorrido((data: any) => {
+      console.log('🔄 Estado de recorrido actualizado:', data);
+      
+      // En vez de mapear, recargamos de base de datos para asegurar 
+      // que si es un recorrido NUEVO (recién asignado), se agregue a la lista.
+      this.cargarRecorridos();
+
+      // Si la ruta actualizada es la que el admin está viendo en el mapa
+      const rutaViendo = this.rutaSeleccionada();
+      
+      // Tenemos que esperar a que cargarRecorridos termine para ver si aplica,
+      // pero por si acaso, si es 'Activa' y concuerda con la ruta, nos unimos.
+      // Lo validaremos en el cargarRecorridos o con setTimeout:
+      setTimeout(() => {
+        const recorridoEditado = this.recorridos().find(r => r.id === data.recorridoId);
+        
+        if (recorridoEditado && rutaViendo === recorridoEditado.ruta_id) {
+          if (data.estado === 'Activa') {
+            console.log('🚀 Ruta en pantalla acaba de iniciar, conectando a sockets...');
+            if (this.recorridoActivoId) {
+              this.webSocketService.salirRecorrido(this.recorridoActivoId);
+            }
+            this.recorridoActivoId = data.recorridoId;
+            this.webSocketService.unirseRecorrido(data.recorridoId);
+          } else if (data.estado === 'Finalizado' || data.estado === 'Cancelado') {
+            console.log('🛑 Ruta en pantalla finalizó, desconectando...');
+            this.mapService.clearDriverMarker();
+            if (this.recorridoActivoId) {
+              this.webSocketService.salirRecorrido(this.recorridoActivoId);
+              this.recorridoActivoId = null;
+            }
+          }
+        }
+      }, 500); // 500ms para dar tiempo a la respuesta HTTP de cargarRecorridos
+    });
   }
 
   // ---------------------------------------------------------
@@ -155,6 +204,11 @@ export class PrincipalComponent implements OnInit {
   if (!rutaId) {
     console.log("↩ No se seleccionó ruta — limpiando mapa");
     this.mapService.resetMap();
+    this.mapService.clearDriverMarker();
+    if (this.recorridoActivoId) {
+      this.webSocketService.salirRecorrido(this.recorridoActivoId);
+      this.recorridoActivoId = null;
+    }
     return;
   }
 
@@ -200,6 +254,26 @@ export class PrincipalComponent implements OnInit {
   console.log("🗺 Coordenadas enviadas al mapa:", coords);
 
   this.mapService.showRoute(coords);
+
+  // Buscar si hay un recorrido activo para esta ruta
+  const recorridoActivo = this.recorridos().find(r => r.ruta_id === rutaId && r.estado === 'Activa');
+  
+  // Salir del recorrido anterior si existe
+  if (this.recorridoActivoId && this.recorridoActivoId !== recorridoActivo?.id) {
+    this.webSocketService.salirRecorrido(this.recorridoActivoId);
+    this.recorridoActivoId = null;
+    this.mapService.clearDriverMarker();
+  }
+
+  // Unirse al nuevo recorrido activo
+  if (recorridoActivo) {
+    console.log("🚀 Recorrido activo encontrado, conectando a WebSockets:", recorridoActivo.id);
+    this.recorridoActivoId = recorridoActivo.id;
+    this.webSocketService.unirseRecorrido(recorridoActivo.id);
+  } else {
+    console.log("⏳ No hay recorridos activos para esta ruta.");
+    this.mapService.clearDriverMarker();
+  }
   }
 
 

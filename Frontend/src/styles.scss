@@ -14,24 +14,25 @@ html, body {
   width: 100%;
 }
 
+/* Paleta Admin — siempre modo claro */
+:root {
+  --bg-main: #F0F2F5;
+  --bg-card: #FFFFFF;
+  --color-primary: #6390D6;
+  --color-primary-dark: #4a74c4;
+  --color-light: rgba(99, 144, 214, 0.12);
+  --color-text: #1a2035;
+  --color-text-light: #64748b;
+  --color-error: #ef4444;
+  --border-color: #e2e8f0;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #f5f5f5;
-}
-
-// === global ===
-:root {
-  --color-primary: #2d5f4f;
-  --color-primary-dark: #1a3a2e;
-  --color-secondary: #5a8c7a;
-  --color-light: #e8f5f0;
-  --color-lighter: #d4ebe3;
-  --color-text: #2d5f4f;
-  --color-text-light: #5a8c7a;
-  --color-error: #ff6b6b;
-  --color-success: #51cf66;
+  background: var(--bg-main);
+  color: var(--color-text);
 }
 
 

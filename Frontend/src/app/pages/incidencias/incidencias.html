@@ -1,0 +1,163 @@
+<div class="app-layout">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeSidebar)="toggleSidebar()"></app-sidebar>
+
+  <div class="main-content" [class.sidebar-open]="sidebarOpen()">
+    <app-header (toggleSidebar)="toggleSidebar()"></app-header>
+
+    <main class="page-content">
+
+      <!-- HEADER -->
+      <div class="page-header">
+        <div class="header-titles">
+          <h1>Reportes de Incidencias</h1>
+          <p>Incidencias reportadas por los conductores en tiempo real</p>
+        </div>
+        <button class="btn-refresh" (click)="cargarIncidencias()" title="Actualizar">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="action-toolbar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Buscar por conductor, ruta o descripción..."
+            [value]="busqueda()" (input)="busqueda.set($any($event.target).value)">
+        </div>
+        <div class="filters">
+          <select class="filter-select" [value]="filtroTipo()"
+            (change)="filtroTipo.set($any($event.target).value)">
+            <option *ngFor="let t of tiposIncidencia" [value]="t.value">{{ t.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ESTADO CARGANDO -->
+      @if (cargando()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando incidencias...</p>
+        </div>
+      }
+
+      <!-- TABLA / GRID -->
+      @if (!cargando() && getIncidenciasFiltradas().length > 0) {
+        <div class="incidencias-grid">
+          @for (item of getIncidenciasFiltradas(); track item.id) {
+            <div class="incidencia-card" (click)="abrirDetalle(item)">
+
+              <div class="card-left">
+                <div class="tipo-icon" [class]="'tipo-' + getColorTipo(item.tipo)">
+                  <i class="fa-solid" [class]="getIconTipo(item.tipo)"></i>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <div class="card-top-row">
+                  <span class="badge-tipo" [class]="'badge-' + getColorTipo(item.tipo)">
+                    {{ getLabelTipo(item.tipo) }}
+                  </span>
+                  <span class="fecha-text">{{ formatFecha(item) }}</span>
+                </div>
+
+                <p class="descripcion">{{ item.descripcion || 'Sin descripción' }}</p>
+
+                <div class="card-meta">
+                  @if (item.recorrido?.conductor_id) {
+                    <span class="meta-item">
+                      <i class="fa-solid fa-user"></i> Conductor: {{ item.recorrido?.conductor_id }}
+                    </span>
+                  }
+                  @if (item.foto) {
+                    <span class="meta-item has-photo">
+                      <i class="fa-solid fa-camera"></i> Foto adjunta
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <div class="card-right">
+                <i class="fa-solid fa-chevron-right arrow-icon"></i>
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ESTADO VACÍO -->
+      @if (!cargando() && getIncidenciasFiltradas().length === 0) {
+        <div class="empty-state">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <p>No hay incidencias registradas</p>
+          <small>Las incidencias reportadas por los conductores aparecerán aquí</small>
+        </div>
+      }
+
+    </main>
+  </div>
+</div>
+
+<!-- MODAL DETALLE -->
+@if (incidenciaSeleccionada(); as selectedItem) {
+  <div class="modal-overlay" (click)="cerrarDetalle()">
+    <div class="modal-detalle" (click)="$event.stopPropagation()">
+
+      <div class="modal-detalle-header">
+        <div class="tipo-icon-lg" [class]="'tipo-' + getColorTipo(selectedItem.tipo)">
+          <i class="fa-solid" [class]="getIconTipo(selectedItem.tipo)"></i>
+        </div>
+        <div>
+          <h3>{{ getLabelTipo(selectedItem.tipo) }}</h3>
+          <span class="fecha-modal">{{ formatFecha(selectedItem) }}</span>
+        </div>
+        <button class="close-btn" (click)="cerrarDetalle()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-detalle-body">
+
+        @if (selectedItem.recorrido) {
+          <div class="detail-row">
+            <div class="detail-item">
+              <span class="detail-label">Conductor (ID)</span>
+              <span class="detail-value">{{ selectedItem.recorrido?.conductor_id }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Ruta (ID)</span>
+              <span class="detail-value">{{ selectedItem.recorrido?.ruta_id }}</span>
+            </div>
+          </div>
+        } @else {
+          <div class="detail-row">
+             <div class="detail-item full alert-info">
+                <i class="fa-solid fa-info-circle"></i>
+                Esta incidencia fue reportada fuera de un recorrido programado.
+             </div>
+          </div>
+        }
+
+        <div class="detail-item full">
+          <span class="detail-label">Descripción</span>
+          <p class="detail-value descripcion-full">
+            {{ incidenciaSeleccionada()!.descripcion || 'Sin descripción proporcionada.' }}
+          </p>
+        </div>
+
+        @if (incidenciaSeleccionada()!.foto) {
+          <div class="detail-item full">
+            <span class="detail-label">Evidencia fotográfica</span>
+            <img [src]="incidenciaSeleccionada()!.foto!" alt="Evidencia" class="foto-evidencia">
+          </div>
+        } @else {
+          <div class="no-foto">
+            <i class="fa-regular fa-image"></i>
+            <span>Sin evidencia fotográfica</span>
+          </div>
+        }
+
+      </div>
+    </div>
+  </div>
+}

@@ -1,13 +1,13 @@
 @use "sass:color";
-$primary: #2ecc71;
+$primary: var(--color-primary);
 $danger: #e74c3c;
-$dark: #2c3e50;
-$light: #ecf0f1;
-$gray: #95a5a6;
-$bg: #f8f9fa;
-$white: #fff;
+$dark: var(--color-text);
+$light: var(--border-color);
+$gray: var(--color-text-light);
+$bg: var(--bg-main);
+$white: var(--bg-card);
 
-.app-layout { display: flex; height: 100vh; background: #eef0f8; }
+.app-layout { display: flex; height: 100vh; background: var(--bg-main); }
 .main-content { 
   flex: 1; 
   display: flex; 
@@ -27,23 +27,23 @@ $white: #fff;
   }
 }
 
-.card-table { background: $white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.5rem; overflow: hidden; }
+.card-table { background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.5rem; overflow: hidden; border: 1px solid #e2e8f0; }
 .table-responsive { overflow-x: auto; }
 .table { 
   width: 100%; border-collapse: collapse; text-align: left;
-  th { padding: 1rem; border-bottom: 2px solid $light; color: $gray; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
-  td { padding: 1rem; border-bottom: 1px solid $light; vertical-align: middle; }
-  tbody tr:hover { background-color: rgba($primary, 0.02); }
+  th { padding: 1rem; border-bottom: 2px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
+  td { padding: 1rem; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+  tbody tr:hover { background-color: #f8fafc; }
   .user-info { display: flex; align-items: center; gap: 1rem;
-    .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: rgba($primary, 0.1); color: $primary; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-    .user-name { font-weight: 600; color: $dark; }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: rgba(99, 144, 214, 0.12); color: #6390D6; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .user-name { font-weight: 600; color: #1a2035; }
   }
-  .badge { padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.8rem; font-weight: bold;
-    &.badge-success { background: rgba($primary, 0.1); color: $primary; }
-    &.badge-danger { background: rgba($danger, 0.1); color: $danger; }
+  .badge { padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.8rem; font-weight: 600;
+    &.badge-success { background: rgba(99, 144, 214, 0.12); color: #6390D6; }
+    &.badge-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
   }
   .btn-icon { background: none; border: none; padding: 0.5rem; border-radius: 6px; cursor: pointer; transition: 0.2s;
-    &.text-danger { color: $gray; &:hover { background: rgba($danger, 0.1); color: $danger; } }
+    &.text-danger { color: #94a3b8; &:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; } }
   }
 }
 .empty-state { text-align: center; color: $gray; padding: 2rem; }

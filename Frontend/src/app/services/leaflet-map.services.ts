@@ -201,6 +201,8 @@ export class LeafletMapService {
     this.resetAll();
   }
 
+  private driverMarker: L.Marker | null = null;
+
   //** Mostrar ruta guardada en coordenadas [lng, lat] */
   showRoute(coordinates: [number, number][]) {
     if (!this.map || coordinates.length < 2) return;
@@ -229,6 +231,35 @@ export class LeafletMapService {
     this.map.fitBounds(latLngs);
   }
 
+  /** Actualizar posición en tiempo real del conductor */
+  updateDriverPosition(lat: number, lng: number) {
+    if (!this.map) return;
+
+    if (!this.driverMarker) {
+      // Crea un icono personalizado (camión o punto)
+      const truckIcon = L.divIcon({
+        className: 'driver-marker',
+        html: `<div style="width: 20px; height: 20px; background-color: #00E5FF; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,229,255,0.8);"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+
+      this.driverMarker = L.marker([lat, lng], { icon: truckIcon }).addTo(this.map);
+    } else {
+      this.driverMarker.setLatLng([lat, lng]);
+    }
+    
+    // Opcional: centrar el mapa en el conductor
+    // this.map.setView([lat, lng]);
+  }
+
+  /** Remover marcador del conductor */
+  clearDriverMarker() {
+    if (this.driverMarker && this.map) {
+      this.map.removeLayer(this.driverMarker);
+      this.driverMarker = null;
+    }
+  }
 }
 
 

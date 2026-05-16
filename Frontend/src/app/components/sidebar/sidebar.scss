@@ -5,10 +5,12 @@
 
 $sidebar-width-open:   240px;
 $sidebar-width-closed:  72px;
-$navy:   #171923;
-$accent: #10b981;
-$text:   #e2e8f0;
-$muted:  #94a3b8;
+
+// Use explicit colors from the Dark Palette for the sidebar so it always looks sleek
+$navy:   #161B22; 
+$accent: var(--color-primary); 
+$text:   #F2F2F2;
+$muted:  #9eaab5;
 $border: rgba(255,255,255,0.07);
 
 // ---- BASE ----
@@ -37,7 +39,7 @@ $border: rgba(255,255,255,0.07);
   right: -14px;                   // sobresale hacia la derecha
   width: 28px;
   height: 28px;
-  background: #2d3148;
+  background: #21262d;
   border: 2px solid rgba(255,255,255,0.12);
   border-radius: 50%;
   color: $muted;
@@ -51,7 +53,7 @@ $border: rgba(255,255,255,0.07);
 
   &:hover {
     background: $accent;
-    color: white;
+    color: #161B22;
     border-color: $accent;
   }
 
@@ -86,9 +88,9 @@ $border: rgba(255,255,255,0.07);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #161B22;
     font-size: 1rem;
-    box-shadow: 0 4px 10px rgba(16,185,129,0.3);
+    box-shadow: 0 4px 10px rgba(150, 180, 234, 0.3);
     flex-shrink: 0;
   }
 
@@ -207,13 +209,12 @@ $border: rgba(255,255,255,0.07);
   }
 
   &.active {
-    color: #fff;
-    background: rgba(255,255,255,0.06);
+    color: #161B22;
+    background: $accent;
 
     .nav-icon-wrap {
-      background: $accent;
-      color: #fff;
-      box-shadow: 0 4px 10px rgba(16,185,129,0.3);
+      background: transparent;
+      color: #161B22;
     }
   }
 }

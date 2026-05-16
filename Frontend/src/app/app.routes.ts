@@ -7,6 +7,7 @@ import { NoBackLoginGuard } from './guards/no-back-login-guard';
 import { AuthGuard } from './guards/auth.guard';
 import { ConductoresComponent } from './pages/conductores/conductores';
 import { RutasConcretadasComponent } from './pages/rutasconcretadas/rutasconcretadas';
+import { IncidenciasComponent } from './pages/incidencias/incidencias';
 
 export const routes: Routes = [
   {
@@ -21,6 +22,7 @@ export const routes: Routes = [
   { path: "vehiculos",   component: VehiculosComponent,   canActivate: [AuthGuard] },
   { path: "conductores", component: ConductoresComponent, canActivate: [AuthGuard] },
   {path: "rutas-concretadas", component: RutasConcretadasComponent, canActivate: [AuthGuard]},
+  { path: "incidencias",       component: IncidenciasComponent,       canActivate: [AuthGuard] },
 
   { path: "auth-callback", component: AuthCallback },
 

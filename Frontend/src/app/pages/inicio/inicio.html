@@ -1,66 +1,39 @@
-<div class="landing-page">
+<div class="landing-page split-layout">
 
   <!-- ========== NAVBAR ========== -->
   <nav class="navbar" [class.scrolled]="isScrolled()">
     <div class="navbar-container">
-
       <!-- Logo y Nombre -->
       <div class="nav-brand">
         <div class="logo">
-          <img src="logo.png" />
+          <!-- TODO: Actualizar logo si es necesario -->
+          <img src="logo.png" alt="BMArutas Logo"/>
         </div>
-
-
         <span class="brand-name">BMArutas</span>
       </div>
-
+      <!-- Enlaces (Opcional, según diseño) -->
+      <div class="nav-links">
+        <a href="#">Términos</a>
+        <a href="#">Planes</a>
+        <a href="#">Contacto</a>
+      </div>
     </div>
-
   </nav>
 
-  <!-- ========== HERO SECTION ========== -->
-  <section id="inicio" class="hero-section">
-    <!-- Imagen de fondo -->
-    <div class="hero-background"></div>
+  <!-- ========== SPLIT CONTAINER ========== -->
+  <div class="split-container">
+    
+    <!-- Lado Izquierdo: Textos -->
+    <div class="split-left fade-in-up">
+      <h1 class="split-title">Rápido, Eficiente y Productivo</h1>
+    </div>
 
-    <!-- Overlay oscuro -->
-    <div class="hero-overlay"></div>
-
-    <div class="hero-container">
-      <div class="hero-content">
-
-        <!-- Título principal -->
-        <h1 class="hero-title">
-          ¡Bienvenido!
-        </h1>
-          
-        <!-- Descripcion -->
-        <p class="hero-description">
-          Te ayudamos a conocer los horarios reales del camión en tu zona, para que puedas sacar la basura a tiempo y evitar molestias.
-        </p>
-
-        <!-- boton de accion -->
-        <div class="hero-buttons">
-          <button class="btn-primary" (click)="openLoginModal()">
-            ¡Comenzar Ahora!
-          </button>
-        </div>
+    <!-- Lado Derecho: Tarjeta de Login -->
+    <div class="split-right">
+      <div class="glass-card zoom-in">
+        <app-login></app-login>
       </div>
     </div>
-  </section>
 
-  <!-- ========== MODAL LOGIN ========== -->
-  @if (showLoginModal()) {
-    <div class="login-overlay" (click)="closeLoginModal()">
-      <div class="login-modal" (click)="$event.stopPropagation()">
-        <!-- Boton cerrar -->
-        <button class="modal-close" (click)="closeLoginModal()">
-          ✕
-        </button>
-        <!-- Componente de login -->
-        <app-login (loginSuccess)="closeLoginModal()"></app-login>
-      </div>
-    </div>
-  }
-
+  </div>
 </div>

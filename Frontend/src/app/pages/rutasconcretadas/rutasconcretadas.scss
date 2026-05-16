@@ -1,17 +1,17 @@
 @use "sass:color";
 
-$app-bg: #eef2f7;
-$card-bg: #ffffff;
-$text: #0f172a;
-$text-soft: #64748b;
-$border: #e2e8f0;
-$green: #10b981;
-$green-dark: #059669;
+$app-bg: var(--bg-main);
+$card-bg: var(--bg-card);
+$text: var(--color-text);
+$text-soft: var(--color-text-light);
+$border: var(--border-color);
+$green: var(--color-primary);
+$green-dark: var(--color-primary);
 
 .app-layout {
   display: flex;
   height: 100vh;
-  background: $app-bg;
+  background: var(--bg-main);
 }
 
 .main-content {
@@ -423,8 +423,8 @@ $green-dark: #059669;
   font-weight: 700;
 
   &.finalizado {
-    background: #dcfce7;
-    color: $green-dark;
+    background: rgba(150, 180, 234, 0.15);
+    color: var(--color-primary);
   }
 }
 

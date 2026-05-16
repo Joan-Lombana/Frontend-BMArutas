@@ -1,100 +1,55 @@
-<div class="login-container">
+<div class="login-wrapper">
+  
+  <div class="form-header">
+    <h1 class="form-title">Iniciar Sesión</h1>
+    <p class="form-subtitle">Acceso al Panel de Administración</p>
+  </div>
 
-  <!-- LADO IZQUIERDO -->
-  <div class="login-form-side">
+  @if (errorMessage()) {
+    <div class="error-message">
+      {{ errorMessage() }}
+    </div>
+  }
 
-    <div class="form-wrapper">
+  <form (ngSubmit)="onLogin()" #loginForm="ngForm" class="auth-form">
 
-      <!-- Logo -->
-      <div class="brand-logo">
-        <h3 class="brand-name">BMArutas</h3>
-      </div>
-
-
-      <!-- Título -->
-
-      <div class="form-header">
-        <h1 class="form-title">Bienvenido</h1>
-        <p class="form-subtitle">
-          Inicia sesión para continuar
-        </p>
-      </div>
-
-
-      <!-- error -->
-
-      @if (errorMessage()) {
-        <div class="error-message">
-          {{ errorMessage() }}
-        </div>
-      }
-
-
-      <!-- FORM LOGIN -->
-
-      <form
-        (ngSubmit)="onLogin()"
-        #loginForm="ngForm"
-        class="auth-form"
+    <div class="form-group">
+      <label class="form-label">Correo Electrónico</label>
+      <input
+        type="email"
+        name="correo"
+        [(ngModel)]="loginData.correo"
+        required
+        class="form-input"
+        placeholder="correo electronico"
       >
-
-
-        <!-- correo -->
-
-        <div class="form-group">
-
-          <label>Email</label>
-
-          <input
-            type="email"
-            name="correo"
-            [(ngModel)]="loginData.correo"
-            required
-            class="form-input"
-          >
-
-        </div>
-
-
-        <!-- password -->
-
-        <div class="form-group">
-
-          <label>Password</label>
-
-          <input
-            type="password"
-            name="password"
-            [(ngModel)]="loginData.password"
-            required
-            class="form-input"
-          >
-
-        </div>
-
-
-        <!-- botón -->
-
-        <button
-          type="submit"
-          class="btn-submit"
-          [disabled]="loginForm.invalid || isLoading()"
-        >
-          Iniciar sesión
-        </button>
-
-
-      </form>
-
     </div>
 
-  </div>
+    <div class="form-group">
+      <label class="form-label">Contraseña</label>
+      <div class="input-password-wrapper">
+        <input
+          type="password"
+          name="password"
+          [(ngModel)]="loginData.password"
+          required
+          class="form-input"
+          placeholder="••••••••"
+        >
+      </div>
+      <span class="hint-text">Usa 8 o más caracteres con una mezcla de letras, números y símbolos.</span>
+    </div>
 
+    <!-- Separador Opcional si agregas login social a futuro -->
+    <!-- <div class="separator"><span>Or with</span></div> -->
 
-  <!-- LADO DERECHO -->
+    <button
+      type="submit"
+      class="btn-submit"
+      [disabled]="loginForm.invalid || isLoading()"
+    >
+      Ingresar
+    </button>
 
-  <div class="login-image-side">
-    <div class="image-overlay"></div>
-  </div>
-
+  </form>
 </div>
