@@ -2,65 +2,95 @@ import { Injectable } from '@angular/core';
 import * as L from 'leaflet';
 import { HttpClient } from '@angular/common/http';
 import * as GeoJSON from 'geojson';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LeafletMapService {
-
+  
+  // MAPA BASE
   private map: L.Map | null = null;
   private routeCreated = false;
 
+  // VEHÍCULOS
+  private vehicleMarker: L.Marker | null = null;
+  private vehiculos = new Map<string, L.Marker>();
+
+  // RUTAS / RECORRIDOS
   private waypoints: L.LatLng[] = [];
   private pointLayers: L.Layer[] = [];
   private routeLayer: L.GeoJSON | null = null;
   private currentRouteLayer: L.GeoJSON | null = null;
+  private rutasActivas = new Map<string, L.GeoJSON>();
 
-  private MAPBOX_TOKEN = 'pk.eyJ1Ijoiam9hbjk5IiwiYSI6ImNtaXBwc2FwcDA4cXYzZ3B2djMzdWsxZDQifQ.jpYs7Myh7Pybt29kWrupog';
+  // INICIO / FIN MARKERS
+  private inicioMarkers = new Map<string, L.Layer>();
+  private finMarkers = new Map<string, L.Layer>();
+
+  private startIcon = L.divIcon({
+    html: '<div style="width:28px;height:28px;border-radius:50%;background:#00c853;border:4px solid #ffffff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#ffffff;font-weight:700;font-size:14px;">I</div>',
+    className: '',
+    iconSize: [36, 36],
+    iconAnchor: [18, 18]
+  });
+
+  private endIcon = L.divIcon({
+    html: '<div style="width:28px;height:28px;border-radius:50%;background:#f44336;border:4px solid #ffffff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#ffffff;font-weight:700;font-size:14px;">F</div>',
+    className: '',
+    iconSize: [36, 36],
+    iconAnchor: [18, 18]
+  });
+
+  private MAPBOX_TOKEN = environment.mapboxToken;
 
   constructor(private http: HttpClient) {}
 
-  /** Redimensiona el mapa cuando el contenedor cambia de tamaño */
-  resizeMap() {
-    if (this.map) {
-      setTimeout(() => {
-        this.map!.invalidateSize();
-      }, 100);
-    }
-  }
-
-  /** Inicializa el mapa */
+  // INICIAR MAPA
   initMap(containerId: string) {
-  // Si el contenedor cambió (Angular destruyó el HTML), recrea el mapa
-  const container = document.getElementById(containerId);
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
-  if (!container) return;
+    if (this.map && this.map.getContainer() !== container) {
+      this.map.remove();
+      this.map = null;
+    }
 
-  // Si el mapa existe pero el DIV fue recreado → reinicializar
-  if (this.map && this.map.getContainer() !== container) {
-    this.map.remove();   // elimina completamente el mapa anterior
-    this.map = null;
+    if (!this.map) {
+      this.map = L.map(containerId).setView([3.8801, -77.0312], 14);
+
+      L.tileLayer(
+        `https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=${this.MAPBOX_TOKEN}`,
+        { tileSize: 512, zoomOffset: -1 }
+      ).addTo(this.map);
+    }
+
+    setTimeout(() => this.map!.invalidateSize(), 200);
   }
 
-  if (!this.map) {
-    this.map = L.map(containerId).setView([3.8801, -77.0312], 14);
-
-    L.tileLayer(
-      `https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=${this.MAPBOX_TOKEN}`,
-      { tileSize: 512, zoomOffset: -1 }
-    ).addTo(this.map);
+  resizeMap() {
+    if (!this.map) return;
+    setTimeout(() => this.map!.invalidateSize(), 100);
   }
-
-  // Recalcular tamaño siempre
-  setTimeout(() => this.map!.invalidateSize(), 200);
-}
-
 
   isRouteCreated() {
     return this.routeCreated;
   }
 
-  /** Activar selección de puntos para trazar ruta manual */
+  getRouteGeoJSON(): GeoJSON.LineString | null {
+    if (!this.routeLayer) return null;
+
+    const geojson = this.routeLayer.toGeoJSON() as GeoJSON.FeatureCollection;
+    const feature = geojson.features[0];
+
+    if (!feature || feature.geometry.type !== 'LineString') return null;
+
+    return feature.geometry as GeoJSON.LineString;
+  }
+
+  // =========================================================
+  // SELECCIÓN DE PUNTOS
+  // =========================================================
   enablePointSelection() {
     if (!this.map) return;
 
@@ -79,7 +109,6 @@ export class LeafletMapService {
     }
   }
 
-  /** Desactivar selección de puntos */
   disablePointSelection() {
     if (!this.map) return;
 
@@ -88,7 +117,6 @@ export class LeafletMapService {
     this.map.off('click', this.selectPoint);
   }
 
-  /** Evento click para seleccionar un punto */
   private selectPoint = (e: L.LeafletMouseEvent) => {
     this.waypoints.push(e.latlng);
 
@@ -102,17 +130,13 @@ export class LeafletMapService {
     this.pointLayers.push(point);
   };
 
-  /** Retroceder último punto agregado */
   undoLastPoint() {
     if (!this.map) return;
 
     if (this.routeCreated) {
       this.resetAll();
-      alert('Has revertido la ruta generada');
       return;
     }
-
-    if (this.pointLayers.length === 0) return;
 
     const last = this.pointLayers.pop();
     if (last) this.map.removeLayer(last);
@@ -120,11 +144,14 @@ export class LeafletMapService {
     this.waypoints.pop();
   }
 
-  /** Crear ruta usando Mapbox Directions API */
+  // =========================================================
+  // RUTA MAPBOX
+  // =========================================================
   createRoute() {
     if (this.waypoints.length < 2 || !this.map) return;
 
     const coords = this.waypoints.map(p => `${p.lng},${p.lat}`).join(';');
+
     const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${coords}?geometries=geojson&overview=full&access_token=${this.MAPBOX_TOKEN}`;
 
     this.http.get<any>(url).subscribe(resp => {
@@ -141,94 +168,269 @@ export class LeafletMapService {
     });
   }
 
-  /** Limpiar marcadores de puntos */
+  // =========================================================
+  // LIMPIEZA
+  // =========================================================
   private clearMarkers() {
-    if (!this.map) return;
-
-    this.pointLayers.forEach(layer => this.map!.removeLayer(layer));
+    this.pointLayers.forEach(l => this.map?.removeLayer(l));
     this.pointLayers = [];
   }
 
-  /** Reset completo del mapa */
+  private clearRouteEndpoints() {
+    this.inicioMarkers.forEach(m => this.map?.removeLayer(m));
+    this.finMarkers.forEach(m => this.map?.removeLayer(m));
+
+    this.inicioMarkers.clear();
+    this.finMarkers.clear();
+  }
+
   private resetAll() {
     if (!this.map) return;
 
-    if (this.routeLayer) {
-      this.map.removeLayer(this.routeLayer);
-      this.routeLayer = null;
-    }
-
-    if (this.currentRouteLayer) {
-      this.map.removeLayer(this.currentRouteLayer);
-      this.currentRouteLayer = null;
-    }
+    this.routeLayer && this.map.removeLayer(this.routeLayer);
+    this.currentRouteLayer && this.map.removeLayer(this.currentRouteLayer);
 
     this.clearMarkers();
+    this.clearRouteEndpoints();
     this.waypoints = [];
     this.routeCreated = false;
   }
 
-  /** Devuelve GeoJSON listo para guardar */
-  getRouteGeoJSON(): { type: "LineString", coordinates: number[][] } | null {
-  if (!this.routeLayer) return null;
-
-  const geojson: any = this.routeLayer.toGeoJSON();
-
-  // Caso 1: es un Feature con LineString
-  if (geojson.type === "Feature" && geojson.geometry?.type === "LineString") {
-    return {
-      type: "LineString",
-      coordinates: geojson.geometry.coordinates
-    };
-  }
-
-  // Caso 2: FeatureCollection con un Feature LineString
-  if (geojson.type === "FeatureCollection" && geojson.features?.length > 0) {
-    const feature = geojson.features[0];
-    if (feature.geometry?.type === "LineString") {
-      return {
-        type: "LineString",
-        coordinates: feature.geometry.coordinates
-      };
-    }
-  }
-
-    return null;
-  }
-
-  /** Reset manual de mapa */
   resetMap() {
     this.resetAll();
   }
 
-  //** Mostrar ruta guardada en coordenadas [lng, lat] */
-  showRoute(coordinates: [number, number][]) {
-    if (!this.map || coordinates.length < 2) return;
+  // =========================================================
+  // RUTA ESTÁTICA
+  // =========================================================
+  showRoute(coordinates: [number, number][], id: string = 'static-route') {
+  if (!this.map || coordinates.length < 2) return;
 
-    // Elimina la capa anterior si existe
-    if (this.currentRouteLayer) {
-      this.map.removeLayer(this.currentRouteLayer);
-      this.currentRouteLayer = null;
-    }
+  this.clearLiveRoutes();
 
-    // Crea un Feature GeoJSON de tipo LineString
-    const geojson: GeoJSON.Feature<GeoJSON.LineString> = {
-      type: "Feature",
-      properties: {},
-      geometry: { type: "LineString", coordinates }
-    };
-
-    // Añade la ruta al mapa
-    this.currentRouteLayer = L.geoJSON(geojson, {
-      style: { color: '#007BFF', weight: 4 }
-    }).addTo(this.map);
-
-    // Ajusta los bounds del mapa
-    // Leaflet fitBounds acepta un array de tuplas [lat, lng]
-    const latLngs: [number, number][] = coordinates.map(c => [c[1], c[0]]);
-    this.map.fitBounds(latLngs);
+  if (this.currentRouteLayer) {
+    this.map.removeLayer(this.currentRouteLayer);
   }
 
+  const geojson: GeoJSON.Feature<GeoJSON.LineString> = {
+    type: 'Feature',
+    properties: {},
+    geometry: { type: 'LineString', coordinates }
+  };
+
+  this.currentRouteLayer = L.geoJSON(geojson, {
+    style: {
+      color: '#007BFF',
+      weight: 5
+    }
+  }).addTo(this.map);
+
+  const bounds = coordinates.map(c => [c[1], c[0]] as [number, number]);
+  this.map.fitBounds(bounds);
+
+  // 🔥 NUEVO: endpoints visibles también en ruta seleccionada
+  this.setRouteEndpoints(id, coordinates);
+}
+
+  // =========================================================
+  // RUTA EN VIVO (SOLO ACTIVA / PROGRAMADA)
+  // =========================================================
+  showLiveRoute(
+    recorridoId: string,
+    coordinates: [number, number][],
+    color: string = '#00C853'
+  ) {
+    if (!this.map || coordinates.length < 2) return;
+
+    const existente = this.rutasActivas.get(recorridoId);
+    if (existente) this.map.removeLayer(existente);
+
+    const geojson: GeoJSON.Feature<GeoJSON.LineString> = {
+      type: 'Feature',
+      properties: {},
+      geometry: { type: 'LineString', coordinates }
+    };
+
+    const layer = L.geoJSON(geojson, {
+      style: { color, weight: 4, opacity: 0.8 }
+    }).addTo(this.map);
+
+    this.rutasActivas.set(recorridoId, layer);
+  }
+
+  clearLiveRoutes() {
+  if (!this.map) return;
+
+  this.rutasActivas.forEach(l => this.map!.removeLayer(l));
+  this.rutasActivas.clear();
+
+  this.clearRouteEndpoints();
+}
+
+  // =========================================================
+  // VEHÍCULOS
+  // =========================================================
+  actualizarVehiculo(
+    recorridoId: string,
+    lat: number,
+    lng: number,
+    info?: { ruta?: string; conductor?: string; placa?: string }
+  ) {
+    const existe = this.vehiculos.get(recorridoId);
+    const tooltip = this.crearTooltipVehiculo(info);
+
+    if (existe) {
+      existe.setLatLng([lat, lng]);
+      existe.bindTooltip(tooltip, {
+        direction: 'top',
+        offset: [0, -18],
+        sticky: true,
+        opacity: 0.95
+      });
+      return;
+    }
+
+    const marker = L.marker([lat, lng], {
+      icon: L.icon({
+        iconUrl: 'truck.png',
+        iconSize: [35, 35],
+        iconAnchor: [17, 17]
+      })
+    }).addTo(this.map!);
+
+    marker.bindTooltip(tooltip, {
+      direction: 'top',
+      offset: [0, -18],
+      sticky: true,
+      opacity: 0.95
+    });
+
+    this.vehiculos.set(recorridoId, marker);
+  }
+
+  private crearTooltipVehiculo(info?: { ruta?: string; conductor?: string; placa?: string }) {
+    const ruta = info?.ruta || 'Ruta no identificada';
+    const conductor = info?.conductor || 'Conductor no identificado';
+    const placa = info?.placa || 'Placa no identificada';
+
+    return `
+      <div style="font-size:12px;line-height:1.35;">
+        <strong>Ruta:</strong> ${ruta}<br>
+        <strong>Conductor:</strong> ${conductor}<br>
+        <strong>Vehículo:</strong> ${placa}
+      </div>
+    `;
+  }
+
+  removerVehiculo(recorridoId: string) {
+    const marker = this.vehiculos.get(recorridoId);
+
+    if (!marker) return;
+
+    this.map?.removeLayer(marker);
+    this.vehiculos.delete(recorridoId);
+  }
+
+  // =========================================================
+  // FILTRO Y RENDER (SOLO ACTIVO / PROGRAMADO)
+  // =========================================================
+  renderRecorridos(recorridos: any[]) {
+    if (!this.map || !recorridos) return;
+
+    this.clearLiveRoutes();
+
+    recorridos
+      .filter(r => {
+        const e = (r.estado || '').toLowerCase();
+        return e === 'activo' || e === 'programada';
+      })
+      .forEach(r => {
+
+        if (!r.coordenadas || r.coordenadas.length < 2) return;
+
+        const color = this.getColorByEstado(r.estado);
+
+        this.showLiveRoute(r.id, r.coordenadas, color);
+        this.setRouteEndpoints(r.id, r.coordenadas);
+      });
+  }
+  // ENDPOINTS (INICIO / FIN)
+  setRouteEndpoints(recorridoId: string, coordinates: [number, number][]) {
+    if (!this.map || coordinates.length < 2) return;
+
+    const start = coordinates[0];
+    const end = coordinates[coordinates.length - 1];
+
+    const oldStart = this.inicioMarkers.get(recorridoId);
+    const oldEnd = this.finMarkers.get(recorridoId);
+
+    if (oldStart) this.map.removeLayer(oldStart);
+    if (oldEnd) this.map.removeLayer(oldEnd);
+
+    const startMarker = L.circleMarker([start[1], start[0]], {
+      radius: 10,
+      color: '#ffffff',
+      weight: 4,
+      fillColor: '#00c853',
+      fillOpacity: 1
+    }).bindTooltip('I', {
+      permanent: true,
+      direction: 'center',
+      className: 'route-endpoint-label'
+    }).addTo(this.map);
+
+    const endMarker = L.circleMarker([end[1], end[0]], {
+      radius: 10,
+      color: '#ffffff',
+      weight: 4,
+      fillColor: '#f44336',
+      fillOpacity: 1
+    }).bindTooltip('F', {
+      permanent: true,
+      direction: 'center',
+      className: 'route-endpoint-label'
+    }).addTo(this.map);
+
+    this.inicioMarkers.set(recorridoId, startMarker);
+    this.finMarkers.set(recorridoId, endMarker);
+  }
+
+  // SYNC GLOBAL
+  syncMapa(recorridos: any[], rutaSeleccionada?: any) {
+    this.clearLiveRoutes();
+
+    recorridos.forEach(r => {
+      if (r.coordenadas?.length > 1) {
+        this.showLiveRoute(r.id, r.coordenadas, this.getColorByEstado(r.estado));
+        this.setRouteEndpoints(r.id, r.coordenadas);
+      }
+    });
+
+    if (rutaSeleccionada?.coordenadas) {
+      this.showRoute(rutaSeleccionada.coordenadas);
+    }
+  }
+
+  // COLORES
+  getColorByEstado(estado: string): string {
+    const e = (estado || '').toLowerCase();
+
+    switch (e) {
+      case 'activo':
+      case 'activa':
+        return '#00C853';
+
+      case 'programado':
+      case 'programada':
+        return '#FF9800';
+
+      case 'pausado':
+        return '#FBC02D';
+
+      default:
+        return '#9E9E9E';
+    }
+  }
 }
 
 
