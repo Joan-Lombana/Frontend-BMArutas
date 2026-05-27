@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import * as L from 'leaflet';
 import { HttpClient } from '@angular/common/http';
 import * as GeoJSON from 'geojson';
-import { environment } from '../../environments/environment';
+
 
 @Injectable({
   providedIn: 'root',
@@ -43,7 +43,7 @@ export class LeafletMapService {
     iconAnchor: [18, 18]
   });
 
-  private MAPBOX_TOKEN = environment.mapboxToken;
+  private readonly MAPBOX_TOKEN ='pk.eyJ1Ijoiam9hbjk5IiwiYSI6ImNtcG9ocDJoejAzcTgycG9paTIwM255YXcifQ.mOFdSwp7QG5Z4MWuQOJ6hg';
 
   constructor(private http: HttpClient) { }
 
