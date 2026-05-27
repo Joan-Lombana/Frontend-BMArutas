@@ -51,7 +51,10 @@
                 (cerrarHerramientas)="showRouteTools.set(false)"
                 (rutaGuardada)="cargarRutas()">
               </app-herramientasmapa>
-              <app-mapa></app-mapa>
+              <app-mapa
+               [recorridos]="recorridos()"
+               [rutas]="rutas()">
+              > </app-mapa>
             </div>
           </div>
 

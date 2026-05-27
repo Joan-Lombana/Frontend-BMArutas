@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { environment } from '../../environments/environment';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -9,8 +10,9 @@ export class WebSocketService {
 
   private socket: Socket;
 
-  constructor() {
+  
 
+  constructor() {
     this.socket = io(environment.wsUrl, {
       transports: ['websocket'],
     });
@@ -24,9 +26,8 @@ export class WebSocketService {
     });
   }
 
-  // =========================
+
   // SALAS
-  // =========================
 
   unirseRecorrido(recorridoId: string) {
     this.socket.emit('unirseRecorrido', recorridoId);
@@ -36,29 +37,51 @@ export class WebSocketService {
     this.socket.emit('salirRecorrido', recorridoId);
   }
 
-  // =========================
+ 
   // EVENTOS
-  // =========================
 
-  onEstadoRecorrido(callback: (data: any) => void) {
-    this.socket.on('recorrido.estado', callback);
+  onEstadoRecorrido(): Observable<any> {
+    return new Observable(observer => {
+      const handler = (data: any) => observer.next(data);
+      this.socket.on('recorrido.estado', handler);
+      return () => this.socket.off('recorrido.estado', handler);
+    });
   }
 
-  onRecorridoEliminado(callback: (data: any) => void) {
-    this.socket.on('recorrido.eliminado', callback);
+  onRecorridoEliminado(): Observable<any> {
+    return new Observable(observer => {
+      const handler = (data: any) => observer.next(data);
+      this.socket.on('recorrido.eliminado', handler);
+      return () => this.socket.off('recorrido.eliminado', handler);
+    });
   }
 
-  onPosicion(callback: (data: any) => void) {
-    this.socket.on('posicion', callback);
+  onPosicion(): Observable<any> {
+    return new Observable(observer => {
+      const handler = (data: any) => observer.next(data);
+      this.socket.on('posicion', handler);
+      return () => this.socket.off('posicion', handler);
+    });
   }
 
-  onPosicionActualizada(callback: (data: any) => void) {
-    this.socket.on('posicion.actualizada', callback);
+  onPosicionActualizada(): Observable<any> {
+    return new Observable(observer => {
+      const handler = (data: any) => observer.next(data);
+      this.socket.on('posicion.actualizada', handler);
+      return () => this.socket.off('posicion.actualizada', handler);
+    });
   }
 
-  // =========================
+  onLocationPhoto(): Observable<any> {
+    return new Observable(observer => {
+      const handler = (data: any) => observer.next(data);
+      this.socket.on('location:photo', handler);
+      return () => this.socket.off('location:photo', handler);
+    });
+  }
+
+
   // LIMPIEZA
-  // =========================
 
   off(evento: string) {
     this.socket.off(evento);
@@ -67,5 +90,4 @@ export class WebSocketService {
   disconnect() {
     this.socket.disconnect();
   }
-
 }

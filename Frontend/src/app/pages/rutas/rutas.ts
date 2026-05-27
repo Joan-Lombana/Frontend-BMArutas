@@ -3,8 +3,11 @@ import {
   signal,
   OnInit,
   OnDestroy,
+  DestroyRef,
   inject,
 } from '@angular/core';
+
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -49,6 +52,8 @@ export class RutasComponent implements OnInit, OnDestroy {
   private usuariosService = inject(UsuariosService);
   private recorridosService = inject(RecorridosService);
   private webSocketService = inject(WebSocketService);
+
+  private destroyRef = inject(DestroyRef);
 
   // =========================
   // SIGNALS
@@ -97,13 +102,10 @@ export class RutasComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
 
     this.salasUnidas.forEach((id) => {
-      this.webSocketService.salirRecorrido(id);
-    });
 
-    this.webSocketService.off('recorrido.estado');
-    this.webSocketService.off('recorrido.eliminado');
-    this.webSocketService.off('posicion');
-    this.webSocketService.off('posicion.actualizada');
+      this.webSocketService.salirRecorrido(id);
+
+    });
   }
 
   // =========================
@@ -112,46 +114,83 @@ export class RutasComponent implements OnInit, OnDestroy {
 
   configurarWebSocket() {
 
-    // Estado recorrido actualizado
-    this.webSocketService.onEstadoRecorrido((data) => {
+    // =========================
+    // ESTADO RECORRIDO
+    // =========================
 
-      console.log('📡 Estado actualizado:', data);
+    this.webSocketService
+      .onEstadoRecorrido()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((data: any) => {
 
-      this.recorridos.update((recorridos) =>
-        recorridos.map((r) =>
-          r.id === data.recorridoId
-            ? {
-                ...r,
-                estado: data.estado,
-              }
-            : r
-        )
-      );
-    });
+        console.log('📡 Estado actualizado:', data);
 
-    // Recorrido eliminado
-    this.webSocketService.onRecorridoEliminado((data) => {
+        this.recorridos.update((recorridos) =>
+          recorridos.map((r) =>
+            r.id === data.recorridoId
+              ? {
+                  ...r,
+                  estado: data.estado,
+                }
+              : r
+          )
+        );
+      });
 
-      console.log('🗑️ Recorrido eliminado:', data);
+    // =========================
+    // RECORRIDO ELIMINADO
+    // =========================
 
-      this.recorridos.update((recorridos) =>
-        recorridos.filter((r) => r.id !== data.recorridoId)
-      );
+    this.webSocketService
+      .onRecorridoEliminado()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((data: any) => {
 
-      this.salasUnidas.delete(data.recorridoId);
-    });
+        console.log('🗑️ Recorrido eliminado:', data);
 
-    // Nueva posición
-    this.webSocketService.onPosicion((data) => {
-      console.log('📍 Nueva posición:', data);
+        this.recorridos.update((recorridos) =>
+          recorridos.filter(
+            (r) => r.id !== data.recorridoId
+          )
+        );
 
-      // 🔥 aquí luego actualizarás el mapa
-    });
+        this.salasUnidas.delete(data.recorridoId);
+      });
 
-    // Posición actualizada
-    this.webSocketService.onPosicionActualizada((data) => {
-      console.log('✏️ Posición actualizada:', data);
-    });
+    // =========================
+    // NUEVA POSICIÓN
+    // =========================
+
+    this.webSocketService
+      .onPosicion()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((data: any) => {
+
+        console.log('📍 Nueva posición:', data);
+
+        // 🔥 aquí luego actualizarás el mapa
+      });
+
+    // =========================
+    // POSICIÓN ACTUALIZADA
+    // =========================
+
+    this.webSocketService
+      .onPosicionActualizada()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((data: any) => {
+
+        console.log('✏️ Posición actualizada:', data);
+
+      });
   }
 
   // =========================
@@ -213,8 +252,6 @@ export class RutasComponent implements OnInit, OnDestroy {
       );
     });
   }
- 
-
 
   // =========================
   // NOMBRES
@@ -289,6 +326,7 @@ export class RutasComponent implements OnInit, OnDestroy {
   }
 
   getEstadoRutaLabel(ruta: Ruta) {
+
     const estado = this.getEstadoRuta(ruta);
 
     if (estado === 'activa') {
@@ -303,21 +341,27 @@ export class RutasComponent implements OnInit, OnDestroy {
   }
 
   isProgramada(ruta: Ruta): boolean {
+
     const rec = this.getRecorridoActivo(ruta.id);
+
     return (rec?.estado ?? '')
       .toString()
       .toLowerCase() === 'programada';
   }
 
   isActiva(ruta: Ruta): boolean {
+
     const rec = this.getRecorridoActivo(ruta.id);
+
     return (rec?.estado ?? '')
       .toString()
       .toLowerCase() === 'activa';
   }
 
   isPausado(ruta: Ruta): boolean {
+
     const rec = this.getRecorridoActivo(ruta.id);
+
     return (rec?.estado ?? '')
       .toString()
       .toLowerCase() === 'pausado';
