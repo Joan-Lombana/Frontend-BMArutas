@@ -238,6 +238,7 @@ export class PrincipalComponent implements OnInit {
 
       if (estado === 'finalizado' || estado === 'finalizada') {
         this.mapService.removerVehiculo(data.recorridoId);
+        this.mapService.removerRutaViva(data.recorridoId);
         this.ws.salirRecorrido(data.recorridoId);
         this.salasUnidas.delete(data.recorridoId);
         this.cargarRecorridos();

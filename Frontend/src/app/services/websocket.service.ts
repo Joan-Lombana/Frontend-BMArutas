@@ -41,59 +41,36 @@ export class WebSocketService {
   // EVENTOS
 
   onEstadoRecorrido(): Observable<any> {
-  return new Observable(observer => {
-    this.socket.on(
-      'recorrido.estado',
-      (data) => {
-        observer.next(data);
-      }
-    );
-    return () => {
-      this.socket.off(
-        'recorrido.estado'
-      );
-    };
-  });
- }
+    return new Observable(observer => {
+      const handler = (data: any) => observer.next(data);
+      this.socket.on('recorrido.estado', handler);
+      return () => this.socket.off('recorrido.estado', handler);
+    });
+  }
 
   onRecorridoEliminado(): Observable<any> {
-  return new Observable(observer => {
-
-    this.socket.on('recorrido.eliminado', data => {
-      observer.next(data);
+    return new Observable(observer => {
+      const handler = (data: any) => observer.next(data);
+      this.socket.on('recorrido.eliminado', handler);
+      return () => this.socket.off('recorrido.eliminado', handler);
     });
-
-    return () => {
-      this.socket.off('recorrido.eliminado');
-    };
-  });
-}
+  }
 
   onPosicion(): Observable<any> {
-  return new Observable(observer => {
-
-    this.socket.on('posicion', (data) => {
-      observer.next(data);
+    return new Observable(observer => {
+      const handler = (data: any) => observer.next(data);
+      this.socket.on('posicion', handler);
+      return () => this.socket.off('posicion', handler);
     });
-
-    return () => {
-      this.socket.off('posicion');
-    };
-  });
- }
+  }
 
   onPosicionActualizada(): Observable<any> {
-  return new Observable(observer => {
-
-    this.socket.on('posicion.actualizada', data => {
-      observer.next(data);
+    return new Observable(observer => {
+      const handler = (data: any) => observer.next(data);
+      this.socket.on('posicion.actualizada', handler);
+      return () => this.socket.off('posicion.actualizada', handler);
     });
-
-    return () => {
-      this.socket.off('posicion.actualizada');
-    };
-  });
- }
+  }
 
 
   // LIMPIEZA

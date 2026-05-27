@@ -258,6 +258,19 @@ export class LeafletMapService {
     this.rutasActivas.set(recorridoId, layer);
   }
 
+  removerRutaViva(recorridoId: string) {
+    const layer = this.rutasActivas.get(recorridoId);
+    if (layer) {
+      this.map?.removeLayer(layer);
+      this.rutasActivas.delete(recorridoId);
+    }
+
+    const inicio = this.inicioMarkers.get(recorridoId);
+    const fin = this.finMarkers.get(recorridoId);
+    if (inicio) { this.map?.removeLayer(inicio); this.inicioMarkers.delete(recorridoId); }
+    if (fin) { this.map?.removeLayer(fin); this.finMarkers.delete(recorridoId); }
+  }
+
   clearLiveRoutes() {
   if (!this.map) return;
 
