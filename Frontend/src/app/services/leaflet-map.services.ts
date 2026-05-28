@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as L from 'leaflet';
 import { HttpClient } from '@angular/common/http';
 import * as GeoJSON from 'geojson';
+import { environment } from '../../environments/environment';
 
 
 @Injectable({
@@ -321,6 +322,10 @@ export class LeafletMapService {
       opacity: 0.95
     });
 
+    marker.on('click', () => {
+      this.cargarFotosRecorrido(recorridoId);
+    });
+
     this.vehiculos.set(recorridoId, marker);
   }
 
@@ -333,7 +338,8 @@ export class LeafletMapService {
       <div style="font-size:12px;line-height:1.35;">
         <strong>Ruta:</strong> ${ruta}<br>
         <strong>Conductor:</strong> ${conductor}<br>
-        <strong>Vehículo:</strong> ${placa}
+        <strong>Vehículo:</strong> ${placa}<br>
+        <em style="color:#3b82f6;font-size:10px;">🖱️ Click para ver fotos</em>
       </div>
     `;
   }
@@ -480,13 +486,47 @@ export class LeafletMapService {
   // FOTOS EN EL MAPA
   // =========================================================
 
+  private readonly apiUrl = environment.apiUrl;
+
   clearPhotoMarkers() {
     if (!this.map) return;
     this.photoMarkers.forEach(m => this.map!.removeLayer(m));
     this.photoMarkers = [];
   }
 
-  showPhotoMarker(lat: number, lon: number, posicionId: string, timestamp: number, apiUrl: string) {
+  cargarFotosRecorrido(recorridoId: string) {
+    this.clearPhotoMarkers();
+
+    this.http.get<any[]>(`${this.apiUrl}/operativo/recorridos/${recorridoId}/posiciones/fotos`)
+      .subscribe({
+        next: (fotos) => {
+          if (!fotos || fotos.length === 0) {
+            console.log('📷 No hay fotos para este recorrido');
+            return;
+          }
+
+          fotos.forEach((foto: any) => {
+            this.showPhotoMarker(
+              foto.lat,
+              foto.lon,
+              foto.posicion_id,
+              foto.capturado_ts,
+            );
+          });
+
+          // Ajustar vista para mostrar todas las fotos
+          if (this.photoMarkers.length > 0 && this.map) {
+            const group = L.featureGroup(this.photoMarkers);
+            this.map.fitBounds(group.getBounds().pad(0.1));
+          }
+        },
+        error: (err) => {
+          console.error('❌ Error cargando fotos:', err);
+        }
+      });
+  }
+
+  showPhotoMarker(lat: number, lon: number, posicionId: string, timestamp: number) {
     if (!this.map) return;
 
     const fecha = new Date(timestamp);
@@ -547,7 +587,7 @@ export class LeafletMapService {
     const popupContent = `
       <div style="position: relative; width: 220px; height: 300px; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 8px 16px rgba(0,0,0,0.4);">
         <!-- Imagen -->
-        <img src="${apiUrl}/operativo/posiciones/${posicionId}/imagen" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='assets/no-image.png'" />
+        <img src="${this.apiUrl}/operativo/posiciones/${posicionId}/imagen" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='assets/no-image.png'" />
         
         <!-- Degradado y fecha -->
         <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 12px 12px; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%); color: white; font-family: sans-serif; font-size: 13px; font-weight: 500; text-align: center; pointer-events: none;">

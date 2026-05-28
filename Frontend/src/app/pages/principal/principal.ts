@@ -13,7 +13,6 @@ import { RecorridosService } from '../../services/recorridos.services';
 import { UsuariosService } from '../../services/usuarios.services';
 import { LeafletMapService } from '../../services/leaflet-map.services';
 import { WebSocketService } from '../../services/websocket.service';
-import { environment } from '../../../environments/environment';
 
 interface Ruta {
   id: string;
@@ -257,7 +256,6 @@ export class PrincipalComponent implements OnInit {
           data.lon, 
           data.posicion_id, 
           data.capturado_ts || Date.now(),
-          environment.apiUrl
         );
       }
     });

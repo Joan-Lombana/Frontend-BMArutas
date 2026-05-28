@@ -6,6 +6,8 @@ import { HeaderComponent } from '../../components/header/header';
 import { SidebarComponent } from '../../components/sidebar/sidebar';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../services/auth.services';
+import { UsuariosService } from '../../services/usuarios.services';
+import { RutasService } from '../../services/rutas.services';
 import { catchError, of } from 'rxjs';
 
 interface Incidencia {
@@ -29,11 +31,17 @@ interface Incidencia {
 export class IncidenciasComponent implements OnInit {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  private usuariosService = inject(UsuariosService);
+  private rutasService = inject(RutasService);
 
   sidebarOpen = signal(true);
   incidencias = signal<Incidencia[]>([]);
   cargando = signal(true);
   error = signal(false);
+
+  // Datos para resolver nombres
+  conductores = signal<any[]>([]);
+  rutasList = signal<any[]>([]);
 
   // Filtros
   filtroTipo = signal('');
@@ -55,6 +63,8 @@ export class IncidenciasComponent implements OnInit {
 
   ngOnInit() {
     this.cargarIncidencias();
+    this.cargarConductores();
+    this.cargarRutas();
     // Refresco automático cada 10 segundos
     this.pollInterval = setInterval(() => {
       this.cargarIncidencias(false); // false para que no muestre el spinner de carga cada vez
@@ -96,7 +106,8 @@ export class IncidenciasComponent implements OnInit {
     if (texto) lista = lista.filter(i =>
       i.tipo.toLowerCase().includes(texto) ||
       i.descripcion?.toLowerCase().includes(texto) ||
-      i.recorrido?.conductor_id?.toLowerCase().includes(texto)
+      (i.recorrido?.conductor_id && this.getNombreConductor(i.recorrido.conductor_id).toLowerCase().includes(texto)) ||
+      (i.recorrido?.ruta_id && this.getNombreRuta(i.recorrido.ruta_id).toLowerCase().includes(texto))
     );
 
     // Ordenar por fecha (el más reciente primero)
@@ -107,7 +118,44 @@ export class IncidenciasComponent implements OnInit {
     });
   }
 
-  getLabelTipo(tipo: string): string {
+  getNombreConductor(conductorId: string): string {
+    const c = this.conductores().find(x => x.id === conductorId);
+    return c ? `${c.primerNombre || ''} ${c.primerApellido || ''}`.trim() : conductorId;
+  }
+
+  getNombreRuta(rutaId: string): string {
+    const r = this.rutasList().find(x => x.id === rutaId);
+    return r?.nombre_ruta || rutaId;
+  }
+
+  private cargarConductores() {
+    this.usuariosService.getUsuarios().subscribe({
+      next: (resp: any) => {
+        const arr = Array.isArray(resp) ? resp : (resp.data || []);
+        this.conductores.set(arr);
+      },
+      error: (err) => console.error('❌ Error cargando conductores:', err)
+    });
+  }
+
+  private cargarRutas() {
+    this.rutasService.getRutas().subscribe({
+      next: (resp: any) => {
+        const arr = Array.isArray(resp) ? resp : (resp.data || []);
+        this.rutasList.set(arr);
+      },
+      error: (err) => console.error('❌ Error cargando rutas:', err)
+    });
+  }
+
+  getFotoSrc(foto: string | null | undefined): string {
+    if (!foto) return '';
+    // Si ya tiene prefijo data:image, usarlo directamente
+    if (foto.startsWith('data:image')) return foto;
+    // Si es base64 puro, agregar prefijo por defecto
+    return `data:image/jpeg;base64,${foto}`;
+  }
+    getLabelTipo(tipo: string): string {
     const map: Record<string, string> = {
       Mechanic: 'Falla Mecánica',
       Blocked: 'Vía Obstruida',
