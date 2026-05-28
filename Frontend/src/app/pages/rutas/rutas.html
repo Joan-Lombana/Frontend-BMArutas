@@ -76,7 +76,7 @@
 
           <div class="form-group">
             <label>Día y Hora de Salida</label>
-            <input type="datetime-local" [value]="formRecorrido().fecha_inicio" (change)="formRecorrido().fecha_inicio = $any($event.target).value">
+            <input type="datetime-local" [value]="formRecorrido().fecha_programada" (change)="formRecorrido().fecha_programada = $any($event.target).value">
           </div>
 
           <div class="actions">

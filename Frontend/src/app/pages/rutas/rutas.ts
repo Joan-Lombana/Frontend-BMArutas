@@ -77,7 +77,7 @@ export class RutasComponent implements OnInit, OnDestroy {
   formRecorrido = signal({
     vehiculo_id: '',
     conductor_id: '',
-    fecha_inicio: '',
+    fecha_programada: '',
   });
 
   // =========================
@@ -536,7 +536,7 @@ export class RutasComponent implements OnInit, OnDestroy {
     this.formRecorrido.set({
       vehiculo_id: '',
       conductor_id: '',
-      fecha_inicio: '',
+      fecha_programada: '',
     });
   }
 
@@ -553,7 +553,7 @@ export class RutasComponent implements OnInit, OnDestroy {
       !r ||
       !f.vehiculo_id ||
       !f.conductor_id ||
-      !f.fecha_inicio
+      !f.fecha_programada
     ) {
 
       alert(
@@ -568,7 +568,7 @@ export class RutasComponent implements OnInit, OnDestroy {
     try {
 
       fechaISO = new Date(
-        f.fecha_inicio
+        f.fecha_programada
       ).toISOString();
 
     } catch {
@@ -582,7 +582,7 @@ export class RutasComponent implements OnInit, OnDestroy {
       ruta_id: r.id,
       vehiculo_id: f.vehiculo_id,
       conductor_id: f.conductor_id,
-      horario_inicio: fechaISO,
+      fecha_programada: fechaISO,
     };
 
     this.recorridosService
