@@ -40,6 +40,7 @@ $radius: 12px;
 .dashboard-bento {
   flex: 1;
   padding: 2rem;
+  margin-bottom: 1rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -103,8 +104,9 @@ $radius: 12px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
   min-width: 0;
+  padding-bottom: 1rem;
 }
 
 /* AZUL: Botones de Acción Píldoras (ahora en la parte superior global) */
@@ -171,7 +173,7 @@ $radius: 12px;
   display: flex;
   flex-direction: column;
   position: relative;
-  min-height: 380px; /* Reducido para dar espacio a la lista abajo */
+  min-height: 580px; /* Reducido para dar espacio a la lista abajo */
   
   &.primary-card {
     background: var(--bg-card); /* Un ligero tinte o completamente blanco */
@@ -261,6 +263,7 @@ $radius: 12px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
+  min-height: 280px; 
   gap: 1rem;
 
   .card-title-row {

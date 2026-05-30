@@ -29,6 +29,9 @@ export class LeafletMapService {
   // INICIO / FIN MARKERS
   private inicioMarkers = new Map<string, L.Layer>();
   private finMarkers = new Map<string, L.Layer>();
+  private startCoords = new Map<string, [number, number]>();
+  private routeCoords = new Map<string, [number, number][]>();
+  private trails = new Map<string, L.Polyline>();
 
   private startIcon = L.divIcon({
     html: '<div style="width:28px;height:28px;border-radius:50%;background:#00c853;border:4px solid #ffffff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#ffffff;font-weight:700;font-size:14px;">I</div>',
@@ -65,6 +68,8 @@ export class LeafletMapService {
         `https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=${this.MAPBOX_TOKEN}`,
         { tileSize: 512, zoomOffset: -1 }
       ).addTo(this.map);
+
+      this.map.on('click', () => this.clearPhotoMarkers());
     }
 
     setTimeout(() => this.map!.invalidateSize(), 200);
@@ -184,6 +189,10 @@ export class LeafletMapService {
 
     this.inicioMarkers.clear();
     this.finMarkers.clear();
+    this.startCoords.clear();
+    this.routeCoords.clear();
+    this.trails.forEach(t => this.map?.removeLayer(t));
+    this.trails.clear();
   }
 
   private resetAll() {
@@ -273,6 +282,9 @@ export class LeafletMapService {
     const fin = this.finMarkers.get(recorridoId);
     if (inicio) { this.map?.removeLayer(inicio); this.inicioMarkers.delete(recorridoId); }
     if (fin) { this.map?.removeLayer(fin); this.finMarkers.delete(recorridoId); }
+    this.startCoords.delete(recorridoId);
+    this.routeCoords.delete(recorridoId);
+    this.removerTrail(recorridoId);
   }
 
   clearLiveRoutes() {
@@ -304,6 +316,7 @@ export class LeafletMapService {
         sticky: true,
         opacity: 0.95
       });
+      this.actualizarTrail(recorridoId, lat, lng);
       return;
     }
 
@@ -327,6 +340,7 @@ export class LeafletMapService {
     });
 
     this.vehiculos.set(recorridoId, marker);
+    this.actualizarTrail(recorridoId, lat, lng);
   }
 
   private crearTooltipVehiculo(info?: { ruta?: string; conductor?: string; placa?: string }) {
@@ -351,6 +365,49 @@ export class LeafletMapService {
 
     this.map?.removeLayer(marker);
     this.vehiculos.delete(recorridoId);
+    this.removerTrail(recorridoId);
+  }
+
+  private actualizarTrail(recorridoId: string, lat: number, lng: number) {
+    if (!this.map) return;
+    const route = this.routeCoords.get(recorridoId);
+    if (!route || route.length < 2) return;
+
+    const oldTrail = this.trails.get(recorridoId);
+    if (oldTrail) this.map.removeLayer(oldTrail);
+
+    // Encontrar el punto más cercano de la ruta al vehículo
+    let minDist = Infinity;
+    let closestIdx = 0;
+    for (let i = 0; i < route.length; i++) {
+      const [clng, clat] = route[i];
+      const dist = (clat - lat) ** 2 + (clng - lng) ** 2;
+      if (dist < minDist) {
+        minDist = dist;
+        closestIdx = i;
+      }
+    }
+
+    // Trazo desde inicio hasta el punto más cercano (siguiendo la ruta)
+    const traveled = route.slice(0, closestIdx + 1).map(c => [c[1], c[0]] as [number, number]);
+    traveled.push([lat, lng]); // añadir posición actual del vehículo
+
+    const trail = L.polyline(traveled, {
+      color: '#94a3b8',
+      weight: 2,
+      opacity: 0.5,
+      dashArray: '8 6',
+    }).addTo(this.map);
+
+    this.trails.set(recorridoId, trail);
+  }
+
+  private removerTrail(recorridoId: string) {
+    const trail = this.trails.get(recorridoId);
+    if (trail) {
+      this.map?.removeLayer(trail);
+      this.trails.delete(recorridoId);
+    }
   }
 
   // =========================================================
@@ -415,6 +472,8 @@ export class LeafletMapService {
 
     this.inicioMarkers.set(recorridoId, startMarker);
     this.finMarkers.set(recorridoId, endMarker);
+    this.startCoords.set(recorridoId, [start[1], start[0]]);
+    this.routeCoords.set(recorridoId, coordinates);
   }
 
   // SYNC GLOBAL
@@ -482,10 +541,8 @@ export class LeafletMapService {
       this.driverMarker = null;
     }
   }
-  // =========================================================
-  // FOTOS EN EL MAPA
-  // =========================================================
 
+  // FOTOS EN EL MAPA
   private readonly apiUrl = environment.apiUrl;
 
   clearPhotoMarkers() {
@@ -509,8 +566,8 @@ export class LeafletMapService {
             this.showPhotoMarker(
               foto.lat,
               foto.lon,
-              foto.posicion_id,
               foto.capturado_ts,
+              foto.imagen_base64,
             );
           });
 
@@ -526,7 +583,7 @@ export class LeafletMapService {
       });
   }
 
-  showPhotoMarker(lat: number, lon: number, posicionId: string, timestamp: number) {
+  showPhotoMarker(lat: number, lon: number, timestamp: number, imagenBase64: string) {
     if (!this.map) return;
 
     const fecha = new Date(timestamp);
@@ -583,32 +640,17 @@ export class LeafletMapService {
 
     const marker = L.marker([lat, lon], { icon: cameraIcon }).addTo(this.map);
     
-    // Popup personalizado para la foto idéntico al requerimiento premium
-    const popupContent = `
-      <div style="position: relative; width: 220px; height: 300px; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 8px 16px rgba(0,0,0,0.4);">
-        <!-- Imagen -->
-        <img src="${this.apiUrl}/operativo/posiciones/${posicionId}/imagen" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='assets/no-image.png'" />
-        
-        <!-- Degradado y fecha -->
-        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 12px 12px; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%); color: white; font-family: sans-serif; font-size: 13px; font-weight: 500; text-align: center; pointer-events: none;">
-          ${dateStr}
-        </div>
-      </div>
-    `;
-
-    marker.bindPopup(popupContent, {
-      maxWidth: 220,
-      minWidth: 220,
-      className: 'premium-photo-popup',
-      closeButton: true
-    });
+    const src = imagenBase64 || '';
+        const popupContent = `
+          <div style="position: relative; width: 220px; height: 300px; border-radius: 12px; overflow: hidden; background: #111; box-shadow: 0 8px 16px rgba(0,0,0,0.4);">
+            <img src="${src}" style="width: 100%; height: 100%; object-fit: contain; display: block;" />
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 12px 12px; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%); color: white; font-family: sans-serif; font-size: 13px; font-weight: 500; text-align: center; pointer-events: none;">
+              ${dateStr}
+            </div>
+          </div>
+        `;
+        marker.bindPopup(popupContent, { maxWidth: 220, minWidth: 220, className: 'premium-photo-popup', closeButton: true });
 
     this.photoMarkers.push(marker);
   }
 }
-
-
-
-
-
-

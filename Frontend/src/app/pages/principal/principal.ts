@@ -250,12 +250,12 @@ export class PrincipalComponent implements OnInit {
     .pipe(takeUntilDestroyed(this.destroyRef))
     .subscribe((data: any) => {
       console.log('📷 Foto en vivo recibida en mapa:', data);
-      if (data.lat && data.lon && data.posicion_id) {
+      if (data.lat && data.lon && data.imagen_base64) {
         this.mapService.showPhotoMarker(
           data.lat, 
           data.lon, 
-          data.posicion_id, 
           data.capturado_ts || Date.now(),
+          data.imagen_base64,
         );
       }
     });

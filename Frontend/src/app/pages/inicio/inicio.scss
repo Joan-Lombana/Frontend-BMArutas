@@ -40,20 +40,20 @@ $white: #ffffff;
   .nav-brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 
     .brand-name {
-      font-size: 1.5rem;
+      font-size: 1.8rem;
       font-weight: 700;
       color: $text-dark;
-      letter-spacing: -0.5px;
+      
     }
   }
   
   .logo {
     img {
-      width: 40px;
-      height: 40px;
+      width: auto;
+      height: 50px;
       object-fit: cover;
       border-radius: 8px;
     }
@@ -179,4 +179,4 @@ $white: #ffffff;
   .navbar .nav-links {
     display: none; // Ocultamos links en móvil para simplificar
   }
-}
+}
