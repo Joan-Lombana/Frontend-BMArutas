@@ -32,6 +32,8 @@ export class LeafletMapService {
   private startCoords = new Map<string, [number, number]>();
   private routeCoords = new Map<string, [number, number][]>();
   private trails = new Map<string, L.Polyline>();
+  private rutaHaciaInicio = new Map<string, L.Polyline>();
+  private ultimaActualizacionRutaHaciaInicio = new Map<string, number>();
 
   private startIcon = L.divIcon({
     html: '<div style="width:28px;height:28px;border-radius:50%;background:#00c853;border:4px solid #ffffff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#ffffff;font-weight:700;font-size:14px;">I</div>',
@@ -47,7 +49,7 @@ export class LeafletMapService {
     iconAnchor: [18, 18]
   });
 
-  private readonly MAPBOX_TOKEN ='pk.eyJ1Ijoiam9hbjk5IiwiYSI6ImNtcG9ocDJoejAzcTgycG9paTIwM255YXcifQ.mOFdSwp7QG5Z4MWuQOJ6hg';
+  private readonly MAPBOX_TOKEN = 'pk.eyJ1Ijoiam9hbjk5IiwiYSI6ImNtcG9ocDJoejAzcTgycG9paTIwM255YXcifQ.mOFdSwp7QG5Z4MWuQOJ6hg';
 
   constructor(private http: HttpClient) { }
 
@@ -84,6 +86,10 @@ export class LeafletMapService {
     return this.routeCreated;
   }
 
+  canCreateRoute() {
+    return this.waypoints.length >= 2;
+  }
+
   getRouteGeoJSON(): GeoJSON.LineString | null {
     if (!this.routeLayer) return null;
 
@@ -114,6 +120,7 @@ export class LeafletMapService {
       this.map.removeLayer(this.routeLayer);
       this.routeLayer = null;
     }
+    this.removeDraftEndpoints();
   }
 
   disablePointSelection() {
@@ -140,8 +147,15 @@ export class LeafletMapService {
   undoLastPoint() {
     if (!this.map) return;
 
+    // Si la ruta ya estaba generada, simplemente deshacemos la línea generada
+    // para que el usuario pueda seguir editando los puntos previos.
     if (this.routeCreated) {
-      this.resetAll();
+      if (this.routeLayer) {
+        this.map.removeLayer(this.routeLayer);
+        this.routeLayer = null;
+      }
+      this.routeCreated = false;
+      this.removeDraftEndpoints();
       return;
     }
 
@@ -172,6 +186,9 @@ export class LeafletMapService {
 
       this.routeCreated = true;
       this.clearMarkers();
+
+      const coords = geometry.coordinates as [number, number][];
+      this.setRouteEndpoints('draft', coords);
     });
   }
 
@@ -181,6 +198,15 @@ export class LeafletMapService {
   private clearMarkers() {
     this.pointLayers.forEach(l => this.map?.removeLayer(l));
     this.pointLayers = [];
+  }
+
+  private removeDraftEndpoints() {
+    const inicio = this.inicioMarkers.get('draft');
+    const fin = this.finMarkers.get('draft');
+    if (inicio) { this.map?.removeLayer(inicio); this.inicioMarkers.delete('draft'); }
+    if (fin) { this.map?.removeLayer(fin); this.finMarkers.delete('draft'); }
+    this.startCoords.delete('draft');
+    this.routeCoords.delete('draft');
   }
 
   private clearRouteEndpoints() {
@@ -316,7 +342,8 @@ export class LeafletMapService {
         sticky: true,
         opacity: 0.95
       });
-      this.actualizarTrail(recorridoId, lat, lng);
+
+      this.trazarCamionHastaInicio(recorridoId, lat, lng);
       return;
     }
 
@@ -340,7 +367,7 @@ export class LeafletMapService {
     });
 
     this.vehiculos.set(recorridoId, marker);
-    this.actualizarTrail(recorridoId, lat, lng);
+    this.trazarCamionHastaInicio(recorridoId, lat, lng);
   }
 
   private crearTooltipVehiculo(info?: { ruta?: string; conductor?: string; placa?: string }) {
@@ -408,6 +435,75 @@ export class LeafletMapService {
       this.map?.removeLayer(trail);
       this.trails.delete(recorridoId);
     }
+  }
+
+
+  private trazarCamionHastaInicio(recorridoId: string, lat: number, lng: number): void {
+    if (!this.map) return;
+
+    const inicio = this.startCoords.get(recorridoId);
+    if (!inicio) return;
+
+    const [latInicio, lngInicio] = inicio;
+
+    // Si ya está cerca del inicio (< 80m), quitar el trazo
+    const distancia = this.map.distance([lat, lng], [latInicio, lngInicio]);
+    if (distancia < 80) {
+      const old = this.rutaHaciaInicio.get(recorridoId);
+      if (old) { this.map.removeLayer(old); this.rutaHaciaInicio.delete(recorridoId); }
+      return;
+    }
+
+    // Throttle: solo actualizar cada 15 segundos
+    const ahora = Date.now();
+    const ultima = this.ultimaActualizacionRutaHaciaInicio.get(recorridoId) || 0;
+    if (this.rutaHaciaInicio.has(recorridoId) && (ahora - ultima < 15000)) return;
+    this.ultimaActualizacionRutaHaciaInicio.set(recorridoId, ahora);
+
+    const url = `https://router.project-osrm.org/route/v1/driving/${lng},${lat};${lngInicio},${latInicio}?overview=full&geometries=geojson`;
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (data.code !== 'Ok' || !data.routes?.length) {
+          console.error('OSRM no devolvió ruta válida', data);
+          return;
+        }
+
+        const coords: number[][] = data.routes[0].geometry.coordinates;
+        const leafletCoords = coords.map((c: number[]) => [c[1], c[0]] as [number, number]);
+
+        const existente = this.rutaHaciaInicio.get(recorridoId);
+        if (existente) {
+          existente.setLatLngs(leafletCoords);
+        } else {
+          const polyline = L.polyline(leafletCoords, {
+            color: '#6366f1',
+            weight: 3,
+            dashArray: '10, 10',
+            opacity: 0.7,
+            lineJoin: 'round'
+          }).addTo(this.map!);
+          polyline.bindPopup('Camino hacia el inicio de la ruta');
+          this.rutaHaciaInicio.set(recorridoId, polyline);
+        }
+      })
+      .catch(err => {
+        console.error('Error obteniendo ruta OSRM:', err);
+        // Fallback: línea recta
+        const existente = this.rutaHaciaInicio.get(recorridoId);
+        if (existente) {
+          existente.setLatLngs([[lat, lng], [latInicio, lngInicio]]);
+        } else {
+          const polyline = L.polyline([[lat, lng], [latInicio, lngInicio]], {
+            color: '#6366f1',
+            weight: 5,
+            dashArray: '10, 10',
+            opacity: 0.8
+          }).addTo(this.map!);
+          this.rutaHaciaInicio.set(recorridoId, polyline);
+        }
+      });
   }
 
   // =========================================================
@@ -587,9 +683,9 @@ export class LeafletMapService {
     if (!this.map) return;
 
     const fecha = new Date(timestamp);
-    const dateStr = fecha.toLocaleString('es-ES', { 
-      day: 'numeric', month: 'numeric', year: 'numeric', 
-      hour: 'numeric', minute: 'numeric', second: 'numeric' 
+    const dateStr = fecha.toLocaleString('es-ES', {
+      day: 'numeric', month: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric'
     });
 
     const cameraIcon = L.divIcon({
@@ -639,17 +735,20 @@ export class LeafletMapService {
     });
 
     const marker = L.marker([lat, lon], { icon: cameraIcon }).addTo(this.map);
-    
-    const src = imagenBase64 || '';
-        const popupContent = `
-          <div style="position: relative; width: 220px; height: 300px; border-radius: 12px; overflow: hidden; background: #111; box-shadow: 0 8px 16px rgba(0,0,0,0.4);">
+
+    const src = imagenBase64 && imagenBase64.startsWith('data:image')
+      ? imagenBase64
+      : (imagenBase64 ? 'data:image/jpeg;base64,' + imagenBase64 : '');
+
+    const popupContent = `
+      <div style="position: relative; width: 220px; height: 300px; border-radius: 12px; overflow: hidden; background: #111; box-shadow: 0 8px 16px rgba(0,0,0,0.4);">
             <img src="${src}" style="width: 100%; height: 100%; object-fit: contain; display: block;" />
             <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 12px 12px; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%); color: white; font-family: sans-serif; font-size: 13px; font-weight: 500; text-align: center; pointer-events: none;">
               ${dateStr}
             </div>
           </div>
         `;
-        marker.bindPopup(popupContent, { maxWidth: 220, minWidth: 220, className: 'premium-photo-popup', closeButton: true });
+    marker.bindPopup(popupContent, { maxWidth: 220, minWidth: 220, className: 'premium-photo-popup', closeButton: true });
 
     this.photoMarkers.push(marker);
   }

@@ -74,9 +74,15 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label>Día y Hora de Salida</label>
-            <input type="datetime-local" [value]="formRecorrido().fecha_programada" (change)="formRecorrido().fecha_programada = $any($event.target).value">
+          <div class="form-row" style="display: flex; gap: 1rem;">
+            <div class="form-group" style="flex: 1;">
+              <label>Fecha de Salida</label>
+              <input type="date" [value]="formRecorrido().fecha_salida" (change)="formRecorrido().fecha_salida = $any($event.target).value">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>Hora de Salida</label>
+              <input type="time" [value]="formRecorrido().hora_salida" (change)="formRecorrido().hora_salida = $any($event.target).value">
+            </div>
           </div>
 
           <div class="actions">

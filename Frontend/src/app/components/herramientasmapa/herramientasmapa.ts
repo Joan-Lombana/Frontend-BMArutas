@@ -50,18 +50,18 @@ export class Herramientasmapa {
 
   closeSaveModalWithConfirm() {
   let continuar = true;
-  if (this.modoDibujo) {
+  if (this.modoDibujo || this.routeReady()) {
     continuar = confirm(
-      '¿Estás seguro de cerrar? Se perderán los puntos no guardados.'
+      '¿Estás seguro de cancelar? Se perderá el trazado actual.'
     );
 
     if (!continuar) return;
-
-    this.mapService.disablePointSelection();
-    this.mapService.resetMap();
-    this.modoDibujo = false;
-    this.nombreRuta = "";
   }
+
+  this.mapService.disablePointSelection();
+  this.mapService.resetMap();
+  this.modoDibujo = false;
+  this.nombreRuta = "";
   this.cerrarHerramientas.emit();
 }
 
@@ -70,6 +70,10 @@ export class Herramientasmapa {
   // Retroceder último punto
   undoPoint() {
     this.mapService.undoLastPoint();
+    // Si deshicieron una ruta ya generada, pero no están en modo dibujo, lo reactivamos
+    if (!this.routeReady() && !this.modoDibujo) {
+      this.toggleDrawing();
+    }
   }
 
 
@@ -86,8 +90,17 @@ export class Herramientasmapa {
 
   // Crear ruta con OSRM
   makeRoute() {
+    if (!this.canMakeRoute()) {
+      alert("Debes marcar al menos 2 puntos en el mapa para trazar la ruta.");
+      return;
+    }
     this.mapService.disablePointSelection();
+    this.modoDibujo = false;
     this.mapService.createRoute();
+  }
+
+  canMakeRoute() {
+    return this.mapService.canCreateRoute();
   }
 
   routeReady() {
@@ -96,9 +109,14 @@ export class Herramientasmapa {
 
   // Exportar GeoJSON
   saveRoute() {
+  if (!this.nombreRuta.trim()) {
+    alert("Por favor, ingresa un nombre para identificar la ruta.");
+    return;
+  }
+
   const geometry = this.mapService.getRouteGeoJSON(); // ya devuelve { type, coordinates }
   if (!geometry) {
-    alert("No hay ruta para guardar");
+    alert("No hay una ruta generada para guardar.");
     return;
   }
 
@@ -119,12 +137,12 @@ export class Herramientasmapa {
       this.mapService.resetMap();
       this.nombreRuta = "";
       this.modoDibujo = false;
-      alert('Se ha registrado con exito');
+      alert('La ruta ha sido registrada con éxito.');
 
     },
     error: err => {
       console.error("Error guardando ruta", err);
-      alert("No se pudo guardar la ruta");
+      alert("Ocurrió un error al guardar la ruta. Inténtalo de nuevo.");
     }
   });
 }

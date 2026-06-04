@@ -4,23 +4,23 @@
         class="tool-item" 
         (click)="toggleDrawing(); onToolClick($event)" 
         [class.active]="modoDibujo" 
-        title="Seleccionar puntos">
+        title="Colocar puntos en el mapa">
         <img src="seleccionar.png" alt="Seleccionar">
     </div>
 
-    <div class="tool-item" (click)="undoPoint()" title="Revertir">
+    <div class="tool-item" (click)="undoPoint()" title="Deshacer último cambio">
       <img src="back.png" alt="Retroceder">
     </div>
 
-    <div class="tool-item" (click)="makeRoute()" title="Generar ruta">
+    <div class="tool-item" (click)="makeRoute()" [class.disabled]="!canMakeRoute() || routeReady()" title="Generar trazado">
       <img src="crear.png" alt="Ruta">
     </div>
 
-    <div class="tool-item" (click)="openSaveModal()" [class.disabled]="!routeReady()" title="Guardar ruta">
+    <div class="tool-item" (click)="openSaveModal()" [class.disabled]="!routeReady()" title="Guardar ruta generada">
       <img src="guardar.png" alt="Guardar">
     </div>
 
-    <div class="tool-item" (click)="closeSaveModalWithConfirm()" title="Cerrar">
+    <div class="tool-item" (click)="closeSaveModalWithConfirm()" title="Cancelar trazado">
       <img src="x.png" alt="Cancelar">
     </div>
   </div>
@@ -30,8 +30,8 @@
 <div class="save-modal" *ngIf="showSaveModal"> <div class="modal-overlay" (click)="closeSaveModal()"></div>
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3>Nombre de la ruta</h3>
-      <button class="close-btn" (click)="closeSaveModalWithConfirm()" title="Cerrar">×</button>
+      <h3>Guardar Nueva Ruta</h3>
+      <button class="close-btn" (click)="closeSaveModal()" title="Cerrar">×</button>
     </div>
     <input type="text" [(ngModel)]="nombreRuta" placeholder="Ej: Ruta Zona Norte">
 

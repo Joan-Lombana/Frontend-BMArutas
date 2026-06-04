@@ -47,7 +47,7 @@ export class RutasConcretadasComponent implements OnInit {
   // Filtros de fecha
   fechaDesde = signal<string>('');
   fechaHasta = signal<string>('');
-  
+
   // Opciones de fecha rápida
   opcionesFechaRapida = [
     { label: 'Hoy', valor: 'hoy' },
@@ -81,7 +81,7 @@ export class RutasConcretadasComponent implements OnInit {
   // RECORRIDOS
   // =========================
 
-     
+
   cargarRecorridosFinalizados() {
 
     this.recorridosService.getRecorridos().subscribe({
@@ -154,7 +154,7 @@ export class RutasConcretadasComponent implements OnInit {
 
         // Filtro por fecha
         let fechaRecorrido: Date;
-        
+
         // Mejorar manejo de fechas con validación
         if (recorrido.updatedAt) {
           fechaRecorrido = new Date(recorrido.updatedAt);
@@ -163,36 +163,36 @@ export class RutasConcretadasComponent implements OnInit {
         } else {
           fechaRecorrido = new Date(0); // Fecha por defecto
         }
-        
+
         // Validar que la fecha sea válida
         if (isNaN(fechaRecorrido.getTime())) {
           fechaRecorrido = new Date(0);
         }
-        
+
         const fechaDesdeMs = desde && !isNaN(new Date(desde).getTime()) ? new Date(desde).getTime() : 0;
         const fechaHastaMs = hasta && !isNaN(new Date(hasta).getTime()) ? new Date(hasta + 'T23:59:59').getTime() : Infinity;
-        
-        const cumpleFecha = fechaRecorrido.getTime() >= fechaDesdeMs && 
-                          fechaRecorrido.getTime() <= fechaHastaMs;
+
+        const cumpleFecha = fechaRecorrido.getTime() >= fechaDesdeMs &&
+          fechaRecorrido.getTime() <= fechaHastaMs;
 
         return cumpleNombre && cumpleFecha;
       })
       .sort((a, b) => {
-        
+
         if (ordenamiento === 'nombre') {
           // Ordenar por nombre de ruta alfabéticamente
           const nombreA = this.getNombreRuta(a.ruta_id);
           const nombreB = this.getNombreRuta(b.ruta_id);
-          
-          return nombreA.localeCompare(nombreB, 'es', { 
+
+          return nombreA.localeCompare(nombreB, 'es', {
             sensitivity: 'base',
-            numeric: false 
+            numeric: false
           });
         } else {
           // Ordenar por fecha de finalización (más recientes primero)
           const fechaA = new Date(a.updatedAt || a.createdAt || 0).getTime();
           const fechaB = new Date(b.updatedAt || b.createdAt || 0).getTime();
-          
+
           return fechaB - fechaA; // Más recientes primero
         }
       });
@@ -220,7 +220,7 @@ export class RutasConcretadasComponent implements OnInit {
 
   aplicarFiltroFechaRapida(opcion: string) {
     const hoy = new Date();
-    
+
     try {
       switch (opcion) {
         case 'hoy':
@@ -281,7 +281,7 @@ export class RutasConcretadasComponent implements OnInit {
   getRangoFechasText(): string {
     const desde = this.fechaDesde();
     const hasta = this.fechaHasta();
-    
+
     if (desde && hasta) {
       return `${this.formatDateDisplay(desde)} - ${this.formatDateDisplay(hasta)}`;
     } else if (desde) {
@@ -289,7 +289,7 @@ export class RutasConcretadasComponent implements OnInit {
     } else if (hasta) {
       return `Hasta ${this.formatDateDisplay(hasta)}`;
     }
-    
+
     return '';
   }
 
@@ -302,19 +302,19 @@ export class RutasConcretadasComponent implements OnInit {
 
   formatDateDisplay(dateStr: string): string {
     if (!dateStr) return '';
-    
+
     const date = new Date(dateStr);
-    
+
     // Validar que la fecha sea válida
     if (isNaN(date.getTime())) {
       return dateStr; // Retornar el string original si es inválido
     }
-    
+
     try {
-      return date.toLocaleDateString('es-ES', { 
-        day: '2-digit', 
-        month: 'short', 
-        year: 'numeric' 
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
       });
     } catch (error) {
       console.warn('Error formateando fecha:', error);

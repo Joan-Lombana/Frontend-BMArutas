@@ -9,7 +9,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   width: 100%;
 }
@@ -41,12 +42,29 @@ body {
   text-align: center;
 }
 
-.mt-1 { margin-top: 0.5rem; }
-.mt-2 { margin-top: 1rem; }
-.mt-3 { margin-top: 1.5rem; }
-.mb-1 { margin-bottom: 0.5rem; }
-.mb-2 { margin-bottom: 1rem; }
-.mb-3 { margin-bottom: 1.5rem; }
+.mt-1 {
+  margin-top: 0.5rem;
+}
+
+.mt-2 {
+  margin-top: 1rem;
+}
+
+.mt-3 {
+  margin-top: 1.5rem;
+}
+
+.mb-1 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-2 {
+  margin-bottom: 1rem;
+}
+
+.mb-3 {
+  margin-bottom: 1.5rem;
+}
 
 .route-endpoint-label {
   background: transparent;
@@ -55,4 +73,28 @@ body {
   color: #ffffff;
   font-weight: 700;
   font-size: 12px;
+}
+
+/* Estilos para el popup de fotos en el mapa */
+.premium-photo-popup .leaflet-popup-content-wrapper {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.premium-photo-popup .leaflet-popup-content {
+  margin: 0;
+  width: 220px !important;
+}
+
+.premium-photo-popup .leaflet-popup-tip-container {
+  display: none;
+}
+
+.premium-photo-popup .leaflet-popup-close-button {
+  color: white !important;
+  font-size: 18px !important;
+  padding: 8px 12px !important;
+  z-index: 100;
 }

@@ -57,8 +57,10 @@
                   </td>
                 </tr>
                 <tr *ngIf="conductores().length === 0">
-                  <td colspan="5" class="empty-state">
-                    No hay conductores registrados.
+                  <td colspan="5" class="empty-state" style="text-align: center; padding: 40px 20px; color: #64748b;">
+                    <i class="fa-solid fa-users-slash" style="font-size: 32px; margin-bottom: 12px; color: #cbd5e1; display: block;"></i>
+                    <strong style="display: block; font-size: 16px; margin-bottom: 4px; color: #334155;">Aún no tienes conductores registrados</strong>
+                    <span style="font-size: 14px;">Haz clic en <b>"Registrar Conductor"</b> para agregar a tu equipo y comenzar a asignar rutas.</span>
                   </td>
                 </tr>
               </tbody>
@@ -85,21 +87,21 @@
         <div class="form-row">
           <div class="form-group flex-1">
             <label>Primer Nombre *</label>
-            <input type="text" [value]="formConductor().primerNombre" (input)="formConductor().primerNombre = $any($event.target).value" required>
+            <input type="text" [value]="formConductor().primerNombre" (input)="formConductor().primerNombre = $any($event.target).value" placeholder="Ej: Juan" required>
           </div>
           <div class="form-group flex-1">
             <label>Segundo Nombre</label>
-            <input type="text" [value]="formConductor().segundoNombre" (input)="formConductor().segundoNombre = $any($event.target).value">
+            <input type="text" [value]="formConductor().segundoNombre" (input)="formConductor().segundoNombre = $any($event.target).value" placeholder="Ej: Carlos">
           </div>
         </div>
         <div class="form-row">
           <div class="form-group flex-1">
             <label>Primer Apellido *</label>
-            <input type="text" [value]="formConductor().primerApellido" (input)="formConductor().primerApellido = $any($event.target).value" required>
+            <input type="text" [value]="formConductor().primerApellido" (input)="formConductor().primerApellido = $any($event.target).value" placeholder="Ej: Pérez" required>
           </div>
           <div class="form-group flex-1">
             <label>Segundo Apellido *</label>
-            <input type="text" [value]="formConductor().segundoApellido" (input)="formConductor().segundoApellido = $any($event.target).value" required>
+            <input type="text" [value]="formConductor().segundoApellido" (input)="formConductor().segundoApellido = $any($event.target).value" placeholder="Ej: Gómez" required>
           </div>
         </div>
 
@@ -107,12 +109,12 @@
 
         <div class="form-group">
           <label>Correo Electrónico *</label>
-          <input type="email" [value]="formConductor().correo" (input)="formConductor().correo = $any($event.target).value" required>
+          <input type="email" [value]="formConductor().correo" (input)="formConductor().correo = $any($event.target).value" placeholder="ejemplo@empresa.com" required>
         </div>
 
         <div class="form-group">
-          <label>Contraseña *</label>
-          <input type="password" [value]="formConductor().password" (input)="formConductor().password = $any($event.target).value" required>
+          <label>Contraseña temporal *</label>
+          <input type="password" [value]="formConductor().password" (input)="formConductor().password = $any($event.target).value" placeholder="Mínimo 8 caracteres" required>
         </div>
 
         <div class="modal-actions">

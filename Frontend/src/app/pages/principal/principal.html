@@ -1,9 +1,10 @@
 <div class="app-layout">
-  <app-sidebar [isOpen]="sidebarOpen()" (closeSidebar)="toggleSidebar()" (toggleSidebar)="toggleSidebar()"></app-sidebar>
+  <app-sidebar [isOpen]="sidebarOpen()" (closeSidebar)="toggleSidebar()"
+    (toggleSidebar)="toggleSidebar()"></app-sidebar>
   <div class="main-content" [class.sidebar-open]="sidebarOpen()">
     <app-header (toggleSidebar)="toggleSidebar()"></app-header>
     <main class="dashboard-bento" [class.map-expanded]="mapFullscreen()">
-      
+
       <!-- AREA AZUL: Botones de Acción (Transfer, Utility, etc...) movidos arriba para mantener el mapa alineado -->
       <div class="action-pills-row">
         <button class="pill-btn highlight" (click)="abrirModalRegistrarRuta()">
@@ -22,7 +23,7 @@
 
       <!-- LAYOUT PRINCIPAL (2 columnas: Centro | Derecha Amarilla) -->
       <div class="dashboard-columns">
-        
+
         <!-- COLUMNA CENTRAL (Mapa, Rutas) -->
         <div class="center-column">
 
@@ -37,24 +38,22 @@
                 <select class="bento-select" (change)="seleccionarRuta($event)">
                   <option value="">Todas las rutas</option>
                   <!-- Rellenado con nombres de rutas si existen en tu BD -->
-                  <option *ngFor="let ruta of rutas()" [value]="ruta.id">{{ ruta?.nombre_ruta || 'Ruta sin nombre (ID: ' + ruta.id + ')' }}</option>
+                  <option *ngFor="let ruta of rutas()" [value]="ruta.id">{{ ruta?.nombre_ruta || 'Ruta sin nombre (ID: '
+                    + ruta.id + ')' }}</option>
                 </select>
-                <button class="icon-action-btn" (click)="toggleMapFullscreen()" [title]="mapFullscreen() ? 'Minimizar' : 'Expandir'">
+                <button class="icon-action-btn" (click)="toggleMapFullscreen()"
+                  [title]="mapFullscreen() ? 'Minimizar' : 'Expandir'">
                   <i class="fa-solid" [class.fa-expand]="!mapFullscreen()" [class.fa-compress]="mapFullscreen()"></i>
                 </button>
               </div>
             </div>
 
             <div class="mapa-container">
-              <app-herramientasmapa
-                *ngIf="showRouteTools()"
-                (cerrarHerramientas)="showRouteTools.set(false)"
+              <app-herramientasmapa *ngIf="showRouteTools()" (cerrarHerramientas)="showRouteTools.set(false)"
                 (rutaGuardada)="cargarRutas()">
               </app-herramientasmapa>
-              <app-mapa
-               [recorridos]="recorridos()"
-               [rutas]="rutas()">
-              > </app-mapa>
+              <app-mapa [recorridos]="recorridos()" [rutas]="rutas()">
+                > </app-mapa>
             </div>
           </div>
 
@@ -64,7 +63,7 @@
               <h3>Rutas Programadas</h3>
               <span class="routes-count">{{ recorridos().length }} recorridos</span>
             </div>
-            
+
             <div class="list-container" *ngIf="recorridos().length > 0; else noRecorridos">
               <div class="list-item" *ngFor="let r of recorridos()">
                 <div class="item-avatar"><i class="fa-solid fa-user"></i></div>
@@ -83,13 +82,13 @@
                     [class.done]="r.estado === 'completado' || r.estado === 'finalizado'">
                     <i class="fa-solid fa-circle"></i>
                     {{ (r.estado === 'en_curso' || r.estado === 'activo' || r.estado === 'iniciado') ? 'En Curso' :
-                       (r.estado === 'programado' || r.estado === 'asignado' || r.estado === 'pendiente') ? 'Programada' :
-                       (r.estado === 'completado' || r.estado === 'finalizado') ? 'Finalizada' : r.estado }}
+                    (r.estado === 'programado' || r.estado === 'asignado' || r.estado === 'pendiente') ? 'Programada' :
+                    (r.estado === 'completado' || r.estado === 'finalizado') ? 'Finalizada' : r.estado }}
                   </span>
                 </div>
               </div>
             </div>
-            
+
             <ng-template #noRecorridos>
               <div class="empty-routes">
                 <i class="fa-solid fa-route"></i>
@@ -108,13 +107,13 @@
               <h3>Estadísticas Generales</h3>
               <i class="fa-solid fa-circle-info text-muted"></i>
             </div>
-            
+
             <div class="main-stat">
               <div class="circle-chart">
                 <!-- Representación visual CSS del grafico de dona -->
                 <div class="inner-circle">
-                   <p>Total Activos</p>
-                   <h2>{{ stats().vehiculosActivos }}</h2>
+                  <p>Total Activos</p>
+                  <h2>{{ stats().vehiculosActivos }}</h2>
                 </div>
               </div>
             </div>
@@ -122,17 +121,26 @@
             <div class="mini-stats-list">
               <div class="mini-stat-item">
                 <div class="ms-icon blue"><i class="fa-solid fa-truck-fast"></i></div>
-                <div class="ms-content"><h4>Vehículos en Vía</h4><p>Actualización hace 1 min</p></div>
+                <div class="ms-content">
+                  <h4>Vehículos en Vía</h4>
+                  <p>Actualización hace 1 min</p>
+                </div>
                 <div class="ms-value">{{ stats().vehiculosActivos }}</div>
               </div>
               <div class="mini-stat-item">
                 <div class="ms-icon dark"><i class="fa-solid fa-check"></i></div>
-                <div class="ms-content"><h4>Rutas Finalizadas</h4><p>Histórico completo</p></div>
+                <div class="ms-content">
+                  <h4>Rutas Finalizadas</h4>
+                  <p>Histórico completo</p>
+                </div>
                 <div class="ms-value">{{ stats().rutasCompletadas }}</div>
               </div>
               <div class="mini-stat-item">
                 <div class="ms-icon orange"><i class="fa-regular fa-clock"></i></div>
-                <div class="ms-content"><h4>Rutas Programadas</h4><p>Pendientes por salir</p></div>
+                <div class="ms-content">
+                  <h4>Rutas Programadas</h4>
+                  <p>Pendientes por salir</p>
+                </div>
                 <div class="ms-value">{{ stats().rutasActivas }}</div>
               </div>
             </div>
@@ -156,22 +164,20 @@
 
     <div class="modal-body">
       <form (submit)="$event.preventDefault(); guardarRuta()">
-        
-        <div class="form-group">
-          <label>Nombre</label>
-          <input type="text" [value]="formRuta().nombre" (input)="formRuta().nombre = $any($event.target).value" required>
-        </div>
 
-
-        <div class="form-group">
-          <label>Horario</label>
-          <input type="time" [value]="formRuta().horario" (input)="formRuta().horario = $any($event.target).value" required>
+        <div class="microcopy-instructions" style="text-align: center; padding: 10px 0 20px; color: #64748b;">
+          <i class="fa-solid fa-draw-polygon" style="font-size: 28px; margin-bottom: 12px; color: #3b82f6;"></i>
+          <p style="font-size: 14px; line-height: 1.6; margin: 0;">
+            Para crear una ruta, presiona <strong>"Trazar en Mapa"</strong>. Se habilitarán las herramientas de dibujo
+            en el mapa; úsalas para marcar los puntos de tu recorrido, genera el trazo y luego guarda los cambios.
+          </p>
         </div>
 
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="cerrarModalRegistrarRuta()">Cancelar</button>
-          <button type="button" class="btn-secondary" (click)="trazarRuta()"><i class="fa-solid fa-pen-nib"></i> Trazar en Mapa</button>
-          <button type="submit" class="btn-submit">Guardar</button>
+          <button type="button" class="btn-secondary" (click)="trazarRuta()"><i class="fa-solid fa-pen-nib"></i> Trazar
+            en Mapa</button>
+
         </div>
       </form>
     </div>
@@ -190,23 +196,28 @@
       <form (submit)="$event.preventDefault(); guardarVehiculo()">
 
         <div class="form-group">
-          <label>Placa</label>
-          <input type="text" [value]="formVehiculo().placa" (input)="formVehiculo().placa = $any($event.target).value" required>
+          <label>Placa *</label>
+          <input type="text" [value]="formVehiculo().placa" (input)="formVehiculo().placa = $any($event.target).value"
+            placeholder="Ej: ABC-123" required>
+          
         </div>
 
         <div class="form-group">
-          <label>Modelo</label>
-          <input type="text" [value]="formVehiculo().modelo" (input)="formVehiculo().modelo = $any($event.target).value" required>
+          <label>Modelo *</label>
+          <input type="text" [value]="formVehiculo().modelo" (input)="formVehiculo().modelo = $any($event.target).value"
+            placeholder="Ej: 2024" required>
         </div>
 
         <div class="form-group">
-          <label>Marca</label>
-          <input type="text" [value]="formVehiculo().marca" (input)="formVehiculo().marca = $any($event.target).value" required>
+          <label>Marca *</label>
+          <input type="text" [value]="formVehiculo().marca" (input)="formVehiculo().marca = $any($event.target).value"
+            placeholder="Ej: Chevrolet, Toyota..." required>
         </div>
 
         <div class="form-group">
           <label>Estado</label>
-          <select [value]="formVehiculo().activo" (change)="formVehiculo().activo = ($any($event.target).value === 'true')">
+          <select [value]="formVehiculo().activo"
+            (change)="formVehiculo().activo = ($any($event.target).value === 'true')">
             <option value="true">Activo</option>
             <option value="false">Inactivo</option>
           </select>
@@ -234,13 +245,15 @@
       <form (submit)="$event.preventDefault(); guardarDireccion()">
 
         <div class="form-group">
-          <label>Dirección</label>
-          <input type="text" [value]="formDireccion().direccion" (input)="formDireccion().direccion = $any($event.target).value" required>
+          <label>Dirección *</label>
+          <input type="text" [value]="formDireccion().direccion"
+            (input)="formDireccion().direccion = $any($event.target).value" placeholder="Ej: Calle 123 #45-67" required>
         </div>
 
         <div class="form-group">
-          <label>Orden</label>
-          <input type="number" [value]="formDireccion().orden" (input)="formDireccion().orden = +$any($event.target).value" min="1" required>
+          <label>Orden de visita *</label>
+          <input type="number" [value]="formDireccion().orden"
+            (input)="formDireccion().orden = +$any($event.target).value" placeholder="Ej: 1" min="1" required>
         </div>
 
         <div class="modal-actions">

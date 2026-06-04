@@ -77,7 +77,8 @@ export class RutasComponent implements OnInit, OnDestroy {
   formRecorrido = signal({
     vehiculo_id: '',
     conductor_id: '',
-    fecha_programada: '',
+    fecha_salida: '',
+    hora_salida: '',
   });
 
   // =========================
@@ -131,9 +132,9 @@ export class RutasComponent implements OnInit, OnDestroy {
           recorridos.map((r) =>
             r.id === data.recorridoId
               ? {
-                  ...r,
-                  estado: data.estado,
-                }
+                ...r,
+                estado: data.estado,
+              }
               : r
           )
         );
@@ -536,7 +537,8 @@ export class RutasComponent implements OnInit, OnDestroy {
     this.formRecorrido.set({
       vehiculo_id: '',
       conductor_id: '',
-      fecha_programada: '',
+      fecha_salida: '',
+      hora_salida: '',
     });
   }
 
@@ -553,11 +555,12 @@ export class RutasComponent implements OnInit, OnDestroy {
       !r ||
       !f.vehiculo_id ||
       !f.conductor_id ||
-      !f.fecha_programada
+      !f.fecha_salida ||
+      !f.hora_salida
     ) {
 
       alert(
-        'Rellena todos los campos para programar el recorrido.'
+        'Rellena todos los campos (vehículo, conductor, fecha y hora) para programar el recorrido.'
       );
 
       return;
@@ -568,7 +571,7 @@ export class RutasComponent implements OnInit, OnDestroy {
     try {
 
       fechaISO = new Date(
-        f.fecha_programada
+        `${f.fecha_salida}T${f.hora_salida}`
       ).toISOString();
 
     } catch {
@@ -608,9 +611,9 @@ export class RutasComponent implements OnInit, OnDestroy {
             this.salasUnidas.add(response.id);
           }
 
-          alert(
-            '🚌 Recorrido programado exitosamente'
-          );
+          setTimeout(() => {
+            alert('🚌 Recorrido programado exitosamente');
+          }, 10);
         },
 
         error: (err) => {
@@ -660,9 +663,9 @@ export class RutasComponent implements OnInit, OnDestroy {
                 )
             );
 
-            alert(
-              'Recorrido cancelado exitosamente'
-            );
+            setTimeout(() => {
+              alert('Recorrido cancelado exitosamente');
+            }, 10);
           },
 
           error: () => {
