@@ -13,6 +13,9 @@ export class LeafletMapService {
   // MAPA BASE
   private map: L.Map | null = null;
   private routeCreated = false;
+  private liveGroup: L.FeatureGroup = L.featureGroup();
+  private drawGroup: L.FeatureGroup = L.featureGroup();
+  private currentMode: 'live' | 'draw' = 'live';
 
   // VEHÍCULOS Y FOTOS
   private vehicleMarker: L.Marker | null = null;
@@ -71,6 +74,8 @@ export class LeafletMapService {
         { tileSize: 512, zoomOffset: -1 }
       ).addTo(this.map);
 
+      this.liveGroup.addTo(this.map);
+
       this.map.on('click', () => this.clearPhotoMarkers());
     }
 
@@ -117,7 +122,7 @@ export class LeafletMapService {
     this.map.on('click', this.selectPoint);
 
     if (this.routeLayer) {
-      this.map.removeLayer(this.routeLayer);
+      this.drawGroup.removeLayer(this.routeLayer);
       this.routeLayer = null;
     }
     this.removeDraftEndpoints();
@@ -139,7 +144,7 @@ export class LeafletMapService {
       color: '#3917d3ff',
       fillColor: '#ff6600',
       fillOpacity: 1,
-    }).addTo(this.map!);
+    }).addTo(this.drawGroup);
 
     this.pointLayers.push(point);
   };
@@ -151,7 +156,7 @@ export class LeafletMapService {
     // para que el usuario pueda seguir editando los puntos previos.
     if (this.routeCreated) {
       if (this.routeLayer) {
-        this.map.removeLayer(this.routeLayer);
+        this.drawGroup.removeLayer(this.routeLayer);
         this.routeLayer = null;
       }
       this.routeCreated = false;
@@ -160,7 +165,7 @@ export class LeafletMapService {
     }
 
     const last = this.pointLayers.pop();
-    if (last) this.map.removeLayer(last);
+    if (last) this.drawGroup.removeLayer(last);
 
     this.waypoints.pop();
   }
@@ -178,11 +183,11 @@ export class LeafletMapService {
     this.http.get<any>(url).subscribe(resp => {
       const geometry = resp.routes[0].geometry;
 
-      if (this.routeLayer) this.map!.removeLayer(this.routeLayer);
+      if (this.routeLayer) this.drawGroup.removeLayer(this.routeLayer);
 
       this.routeLayer = L.geoJSON(geometry, {
         style: { color: '#007BFF', weight: 4 }
-      }).addTo(this.map!);
+      }).addTo(this.drawGroup);
 
       this.routeCreated = true;
       this.clearMarkers();
@@ -196,39 +201,88 @@ export class LeafletMapService {
   // LIMPIEZA
   // =========================================================
   private clearMarkers() {
-    this.pointLayers.forEach(l => this.map?.removeLayer(l));
+    this.pointLayers.forEach(l => this.drawGroup.removeLayer(l));
     this.pointLayers = [];
   }
 
   private removeDraftEndpoints() {
     const inicio = this.inicioMarkers.get('draft');
     const fin = this.finMarkers.get('draft');
-    if (inicio) { this.map?.removeLayer(inicio); this.inicioMarkers.delete('draft'); }
-    if (fin) { this.map?.removeLayer(fin); this.finMarkers.delete('draft'); }
+    if (inicio) {
+      this.drawGroup.removeLayer(inicio);
+      this.liveGroup.removeLayer(inicio);
+      inicio.remove();
+      this.inicioMarkers.delete('draft');
+    }
+    if (fin) {
+      this.drawGroup.removeLayer(fin);
+      this.liveGroup.removeLayer(fin);
+      fin.remove();
+      this.finMarkers.delete('draft');
+    }
     this.startCoords.delete('draft');
     this.routeCoords.delete('draft');
   }
 
+  private removeStaticEndpoints() {
+    const inicio = this.inicioMarkers.get('static-route');
+    const fin = this.finMarkers.get('static-route');
+    if (inicio) {
+      this.liveGroup.removeLayer(inicio);
+      this.drawGroup.removeLayer(inicio);
+      inicio.remove();
+      this.inicioMarkers.delete('static-route');
+    }
+    if (fin) {
+      this.liveGroup.removeLayer(fin);
+      this.drawGroup.removeLayer(fin);
+      fin.remove();
+      this.finMarkers.delete('static-route');
+    }
+    this.startCoords.delete('static-route');
+    this.routeCoords.delete('static-route');
+  }
+
   private clearRouteEndpoints() {
-    this.inicioMarkers.forEach(m => this.map?.removeLayer(m));
-    this.finMarkers.forEach(m => this.map?.removeLayer(m));
+    this.inicioMarkers.forEach(m => {
+      this.liveGroup.removeLayer(m);
+      this.drawGroup.removeLayer(m);
+      m.remove();
+    });
+    this.finMarkers.forEach(m => {
+      this.liveGroup.removeLayer(m);
+      this.drawGroup.removeLayer(m);
+      m.remove();
+    });
 
     this.inicioMarkers.clear();
     this.finMarkers.clear();
     this.startCoords.clear();
     this.routeCoords.clear();
-    this.trails.forEach(t => this.map?.removeLayer(t));
+    this.trails.forEach(t => {
+      this.liveGroup.removeLayer(t);
+      this.drawGroup.removeLayer(t);
+      t.remove();
+    });
     this.trails.clear();
+
+    this.rutaHaciaInicio.forEach(r => {
+      this.liveGroup.removeLayer(r);
+      this.drawGroup.removeLayer(r);
+      r.remove();
+    });
+    this.rutaHaciaInicio.clear();
   }
 
   private resetAll() {
     if (!this.map) return;
 
-    this.routeLayer && this.map.removeLayer(this.routeLayer);
-    this.currentRouteLayer && this.map.removeLayer(this.currentRouteLayer);
+    this.routeLayer && this.drawGroup.removeLayer(this.routeLayer);
+    this.currentRouteLayer && this.liveGroup.removeLayer(this.currentRouteLayer);
 
     this.clearMarkers();
-    this.clearRouteEndpoints();
+    this.removeDraftEndpoints();
+    this.removeStaticEndpoints();
     this.waypoints = [];
     this.routeCreated = false;
   }
@@ -248,7 +302,7 @@ export class LeafletMapService {
     this.clearLiveRoutes();
 
     if (this.currentRouteLayer) {
-      this.map.removeLayer(this.currentRouteLayer);
+      this.liveGroup.removeLayer(this.currentRouteLayer);
     }
 
     const geojson: GeoJSON.Feature<GeoJSON.LineString> = {
@@ -262,7 +316,7 @@ export class LeafletMapService {
         color: '#007BFF',
         weight: 5
       }
-    }).addTo(this.map);
+    }).addTo(this.liveGroup);
 
     const bounds = coordinates.map(c => [c[1], c[0]] as [number, number]);
     this.map.fitBounds(bounds);
@@ -282,7 +336,7 @@ export class LeafletMapService {
     if (!this.map || coordinates.length < 2) return;
 
     const existente = this.rutasActivas.get(recorridoId);
-    if (existente) this.map.removeLayer(existente);
+    if (existente) this.liveGroup.removeLayer(existente);
 
     const geojson: GeoJSON.Feature<GeoJSON.LineString> = {
       type: 'Feature',
@@ -292,7 +346,7 @@ export class LeafletMapService {
 
     const layer = L.geoJSON(geojson, {
       style: { color, weight: 4, opacity: 0.8 }
-    }).addTo(this.map);
+    }).addTo(this.liveGroup);
 
     this.rutasActivas.set(recorridoId, layer);
   }
@@ -300,23 +354,29 @@ export class LeafletMapService {
   removerRutaViva(recorridoId: string) {
     const layer = this.rutasActivas.get(recorridoId);
     if (layer) {
-      this.map?.removeLayer(layer);
+      this.liveGroup.removeLayer(layer);
       this.rutasActivas.delete(recorridoId);
     }
 
     const inicio = this.inicioMarkers.get(recorridoId);
     const fin = this.finMarkers.get(recorridoId);
-    if (inicio) { this.map?.removeLayer(inicio); this.inicioMarkers.delete(recorridoId); }
-    if (fin) { this.map?.removeLayer(fin); this.finMarkers.delete(recorridoId); }
+    if (inicio) { this.liveGroup.removeLayer(inicio); this.inicioMarkers.delete(recorridoId); }
+    if (fin) { this.liveGroup.removeLayer(fin); this.finMarkers.delete(recorridoId); }
     this.startCoords.delete(recorridoId);
     this.routeCoords.delete(recorridoId);
     this.removerTrail(recorridoId);
+    
+    const rutaInicio = this.rutaHaciaInicio.get(recorridoId);
+    if (rutaInicio) {
+      this.liveGroup.removeLayer(rutaInicio);
+      this.rutaHaciaInicio.delete(recorridoId);
+    }
   }
 
   clearLiveRoutes() {
     if (!this.map) return;
 
-    this.rutasActivas.forEach(l => this.map!.removeLayer(l));
+    this.rutasActivas.forEach(l => this.liveGroup.removeLayer(l));
     this.rutasActivas.clear();
 
     this.clearRouteEndpoints();
@@ -353,7 +413,7 @@ export class LeafletMapService {
         iconSize: [35, 35],
         iconAnchor: [17, 17]
       })
-    }).addTo(this.map!);
+    }).addTo(this.liveGroup);
 
     marker.bindTooltip(tooltip, {
       direction: 'top',
@@ -390,9 +450,15 @@ export class LeafletMapService {
 
     if (!marker) return;
 
-    this.map?.removeLayer(marker);
+    this.liveGroup.removeLayer(marker);
     this.vehiculos.delete(recorridoId);
     this.removerTrail(recorridoId);
+
+    const rutaInicio = this.rutaHaciaInicio.get(recorridoId);
+    if (rutaInicio) {
+      this.liveGroup.removeLayer(rutaInicio);
+      this.rutaHaciaInicio.delete(recorridoId);
+    }
   }
 
   private actualizarTrail(recorridoId: string, lat: number, lng: number) {
@@ -401,7 +467,7 @@ export class LeafletMapService {
     if (!route || route.length < 2) return;
 
     const oldTrail = this.trails.get(recorridoId);
-    if (oldTrail) this.map.removeLayer(oldTrail);
+    if (oldTrail) this.liveGroup.removeLayer(oldTrail);
 
     // Encontrar el punto más cercano de la ruta al vehículo
     let minDist = Infinity;
@@ -424,7 +490,7 @@ export class LeafletMapService {
       weight: 2,
       opacity: 0.5,
       dashArray: '8 6',
-    }).addTo(this.map);
+    }).addTo(this.liveGroup);
 
     this.trails.set(recorridoId, trail);
   }
@@ -432,7 +498,7 @@ export class LeafletMapService {
   private removerTrail(recorridoId: string) {
     const trail = this.trails.get(recorridoId);
     if (trail) {
-      this.map?.removeLayer(trail);
+      this.liveGroup.removeLayer(trail);
       this.trails.delete(recorridoId);
     }
   }
@@ -450,7 +516,7 @@ export class LeafletMapService {
     const distancia = this.map.distance([lat, lng], [latInicio, lngInicio]);
     if (distancia < 80) {
       const old = this.rutaHaciaInicio.get(recorridoId);
-      if (old) { this.map.removeLayer(old); this.rutaHaciaInicio.delete(recorridoId); }
+      if (old) { this.liveGroup.removeLayer(old); this.rutaHaciaInicio.delete(recorridoId); }
       return;
     }
 
@@ -483,7 +549,7 @@ export class LeafletMapService {
             dashArray: '10, 10',
             opacity: 0.7,
             lineJoin: 'round'
-          }).addTo(this.map!);
+          }).addTo(this.liveGroup);
           polyline.bindPopup('Camino hacia el inicio de la ruta');
           this.rutaHaciaInicio.set(recorridoId, polyline);
         }
@@ -500,7 +566,7 @@ export class LeafletMapService {
             weight: 5,
             dashArray: '10, 10',
             opacity: 0.8
-          }).addTo(this.map!);
+          }).addTo(this.liveGroup);
           this.rutaHaciaInicio.set(recorridoId, polyline);
         }
       });
@@ -539,8 +605,18 @@ export class LeafletMapService {
     const oldStart = this.inicioMarkers.get(recorridoId);
     const oldEnd = this.finMarkers.get(recorridoId);
 
-    if (oldStart) this.map.removeLayer(oldStart);
-    if (oldEnd) this.map.removeLayer(oldEnd);
+    if (oldStart) {
+      this.liveGroup.removeLayer(oldStart);
+      this.drawGroup.removeLayer(oldStart);
+      oldStart.remove();
+    }
+    if (oldEnd) {
+      this.liveGroup.removeLayer(oldEnd);
+      this.drawGroup.removeLayer(oldEnd);
+      oldEnd.remove();
+    }
+
+    const targetGroup = recorridoId === 'draft' ? this.drawGroup : this.liveGroup;
 
     const startMarker = L.circleMarker([start[1], start[0]], {
       radius: 10,
@@ -552,7 +628,7 @@ export class LeafletMapService {
       permanent: true,
       direction: 'center',
       className: 'route-endpoint-label'
-    }).addTo(this.map);
+    }).addTo(targetGroup);
 
     const endMarker = L.circleMarker([end[1], end[0]], {
       radius: 10,
@@ -564,7 +640,7 @@ export class LeafletMapService {
       permanent: true,
       direction: 'center',
       className: 'route-endpoint-label'
-    }).addTo(this.map);
+    }).addTo(targetGroup);
 
     this.inicioMarkers.set(recorridoId, startMarker);
     this.finMarkers.set(recorridoId, endMarker);
@@ -572,19 +648,43 @@ export class LeafletMapService {
     this.routeCoords.set(recorridoId, coordinates);
   }
 
-  // SYNC GLOBAL
   syncMapa(recorridos: any[], rutaSeleccionada?: any) {
     this.clearLiveRoutes();
 
-    recorridos.forEach(r => {
-      if (r.coordenadas?.length > 1) {
-        this.showLiveRoute(r.id, r.coordenadas, this.getColorByEstado(r.estado));
-        this.setRouteEndpoints(r.id, r.coordenadas);
+    recorridos.forEach((recorrido) => {
+      const ruta = recorrido?.ruta;
+      if (!ruta?.shape) return;
+
+      const estado = (recorrido.estado || '').toLowerCase();
+      if (!['programada', 'programado', 'activa', 'activo', 'pausado'].includes(estado)) return;
+
+      try {
+        const shape = JSON.parse(ruta.shape);
+        let coords: [number, number][] = [];
+
+        if (shape.type === 'LineString') {
+          coords = shape.coordinates;
+        }
+
+        if (shape.type === 'MultiLineString') {
+          coords = shape.coordinates.flat();
+        }
+
+        if (coords.length > 1) {
+          this.showLiveRoute(recorrido.id, coords, this.getColorByEstado(recorrido.estado));
+          this.setRouteEndpoints(recorrido.id, coords);
+        }
+      } catch (e) {
+        console.error('Error parseando shape en syncMapa', e);
       }
     });
 
-    if (rutaSeleccionada?.coordenadas) {
-      this.showRoute(rutaSeleccionada.coordenadas);
+    if (rutaSeleccionada?.shape) {
+      try {
+        const shape = JSON.parse(rutaSeleccionada.shape);
+        const coords = shape.type === 'LineString' ? shape.coordinates : shape.coordinates.flat();
+        this.showRoute(coords, rutaSeleccionada.id);
+      } catch (e) { }
     }
   }
 
@@ -602,7 +702,7 @@ export class LeafletMapService {
         return '#FF9800';
 
       case 'pausado':
-        return '#FBC02D';
+        return '#98c1f3ff';
 
       default:
         return '#9E9E9E';
@@ -621,7 +721,7 @@ export class LeafletMapService {
         iconAnchor: [10, 10]
       });
 
-      this.driverMarker = L.marker([lat, lng], { icon: truckIcon }).addTo(this.map);
+      this.driverMarker = L.marker([lat, lng], { icon: truckIcon }).addTo(this.liveGroup);
     } else {
       this.driverMarker.setLatLng([lat, lng]);
     }
@@ -633,7 +733,7 @@ export class LeafletMapService {
   /** Remover marcador del conductor */
   clearDriverMarker() {
     if (this.driverMarker && this.map) {
-      this.map.removeLayer(this.driverMarker);
+      this.liveGroup.removeLayer(this.driverMarker);
       this.driverMarker = null;
     }
   }
@@ -643,7 +743,7 @@ export class LeafletMapService {
 
   clearPhotoMarkers() {
     if (!this.map) return;
-    this.photoMarkers.forEach(m => this.map!.removeLayer(m));
+    this.photoMarkers.forEach(m => this.liveGroup.removeLayer(m));
     this.photoMarkers = [];
   }
 
@@ -734,7 +834,7 @@ export class LeafletMapService {
       popupAnchor: [0, -42]
     });
 
-    const marker = L.marker([lat, lon], { icon: cameraIcon }).addTo(this.map);
+    const marker = L.marker([lat, lon], { icon: cameraIcon }).addTo(this.liveGroup);
 
     const src = imagenBase64 && imagenBase64.startsWith('data:image')
       ? imagenBase64
@@ -751,5 +851,33 @@ export class LeafletMapService {
     marker.bindPopup(popupContent, { maxWidth: 220, minWidth: 220, className: 'premium-photo-popup', closeButton: true });
 
     this.photoMarkers.push(marker);
+  }
+
+  // =========================================================
+  // CONTROL DE CAPAS (LIVE VS DRAW)
+  // =========================================================
+  getMode() {
+    return this.currentMode;
+  }
+
+  setMode(mode: 'live' | 'draw') {
+    if (!this.map) return;
+    this.currentMode = mode;
+
+    if (mode === 'draw') {
+      if (this.map.hasLayer(this.liveGroup)) {
+        this.map.removeLayer(this.liveGroup);
+      }
+      if (!this.map.hasLayer(this.drawGroup)) {
+        this.drawGroup.addTo(this.map);
+      }
+    } else {
+      if (this.map.hasLayer(this.drawGroup)) {
+        this.map.removeLayer(this.drawGroup);
+      }
+      if (!this.map.hasLayer(this.liveGroup)) {
+        this.liveGroup.addTo(this.map);
+      }
+    }
   }
 }

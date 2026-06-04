@@ -77,7 +77,7 @@ export class Herramientasmapa {
   }
 
 
-   // Activar modo de selección de puntos
+  // Activar modo de selección de puntos
   toggleDrawing() {
     if (this.modoDibujo) {
       this.mapService.disablePointSelection();
@@ -137,6 +137,7 @@ export class Herramientasmapa {
       this.mapService.resetMap();
       this.nombreRuta = "";
       this.modoDibujo = false;
+      this.cerrarHerramientas.emit();
       alert('La ruta ha sido registrada con éxito.');
 
     },

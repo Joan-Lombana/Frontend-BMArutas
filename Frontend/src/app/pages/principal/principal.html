@@ -35,6 +35,19 @@
                 <h3>Mapa en Vivo</h3>
               </div>
               <div class="map-controls">
+                <div class="mode-switch"
+                  style="display: flex; gap: 5px; margin-right: 15px; background: #f1f5f9; padding: 3px; border-radius: 8px;">
+                  <button style="border:none; padding: 5px 10px; border-radius: 6px; cursor:pointer; font-weight: 500;"
+                    [style.background]="mapMode() === 'live' ? '#fff' : 'transparent'"
+                    [style.boxShadow]="mapMode() === 'live' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'"
+                    [style.color]="mapMode() === 'live' ? '#0f172a' : '#64748b'" (click)="setMapMode('live')">🛰️ En
+                    Vivo</button>
+                  <button style="border:none; padding: 5px 10px; border-radius: 6px; cursor:pointer; font-weight: 500;"
+                    [style.background]="mapMode() === 'draw' ? '#fff' : 'transparent'"
+                    [style.boxShadow]="mapMode() === 'draw' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'"
+                    [style.color]="mapMode() === 'draw' ? '#0f172a' : '#64748b'" (click)="setMapMode('draw')">✏️
+                    Trazado</button>
+                </div>
                 <select class="bento-select" (change)="seleccionarRuta($event)">
                   <option value="">Todas las rutas</option>
                   <!-- Rellenado con nombres de rutas si existen en tu BD -->
@@ -52,8 +65,15 @@
               <app-herramientasmapa *ngIf="showRouteTools()" (cerrarHerramientas)="showRouteTools.set(false)"
                 (rutaGuardada)="cargarRutas()">
               </app-herramientasmapa>
-              <app-mapa [recorridos]="recorridos()" [rutas]="rutas()">
-                > </app-mapa>
+              <app-mapa [recorridos]="recorridos()" [rutas]="rutas()"></app-mapa>
+
+              <!-- LEYENDA DE COLORES -->
+              <div class="map-legend" *ngIf="mapMode() === 'live'">
+                <div class="legend-item"><span class="color-dot" style="background: #00C853;"></span>Activa</div>
+                <div class="legend-item"><span class="color-dot" style="background: #FF9800;"></span>Programada</div>
+                <div class="legend-item"><span class="color-dot" style="background: #98c1f3ff"></span>Pausada</div>
+                <div class="legend-item"><span class="color-dot" style="background: #9E9E9E;"></span>Otras</div>
+              </div>
             </div>
           </div>
 
@@ -72,7 +92,8 @@
                   <p>Placa: {{ getDetalleVehiculo(r.vehiculo_id) }}</p>
                 </div>
                 <div class="item-meta">
-                  <p class="date">{{ r.fecha_inicio || r.horario_inicio | date:'dd/MM, h:mm a' }}</p>
+                  <p class="date">{{ r.fecha_inicio || r.fecha_programada || r.horario_inicio | date:'dd/MM, h:mm a' }}
+                  </p>
                   <p class="route-name">{{ getDetalleRuta(r.ruta_id) }}</p>
                 </div>
                 <div class="item-status">
@@ -199,7 +220,7 @@
           <label>Placa *</label>
           <input type="text" [value]="formVehiculo().placa" (input)="formVehiculo().placa = $any($event.target).value"
             placeholder="Ej: ABC-123" required>
-          
+
         </div>
 
         <div class="form-group">

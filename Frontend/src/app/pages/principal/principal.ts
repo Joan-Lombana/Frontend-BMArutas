@@ -28,7 +28,8 @@ interface Recorrido {
   ruta_id: string;
   vehiculo_id: string;
   conductor_id: string;
-  fecha_inicio: string;
+  fecha_inicio?: string;
+  fecha_programada?: string;
   horario_inicio?: string;
   estado: string;
   ruta?: any;
@@ -109,6 +110,7 @@ export class PrincipalComponent implements OnInit {
   showRegistrarVehiculoModal = signal(false);
   showIngresarDireccionModal = signal(false);
   showRouteTools = signal(false);
+  mapMode = signal<'live' | 'draw'>('live');
 
   formRuta = signal<FormRuta>({ nombre: '', zona: '', horario: '' });
   formVehiculo = signal<FormVehiculo>({ placa: '', modelo: '', marca: '', activo: true });
@@ -267,6 +269,9 @@ export class PrincipalComponent implements OnInit {
       this.recorridos.update(list =>
         list.filter(r => r.id !== data.recorridoId)
       );
+      // Remove visual elements (live route, vehicle, path to start)
+      this.mapService.removerRutaViva(data.recorridoId);
+      this.mapService.removerVehiculo(data.recorridoId);
     });
 
   this.ws.onPosicion()
@@ -327,6 +332,7 @@ getDetalleRuta(id: string): string {
     if (!id) {
       this.mapService.resetMap();
       this.mapService.clearPhotoMarkers();
+      this.mapService.syncMapa(this.recorridos());
       return;
     }
 
@@ -378,6 +384,11 @@ getDetalleRuta(id: string): string {
     this.mapService.resizeMap();
   }
 
+  setMapMode(mode: 'live' | 'draw') {
+    this.mapMode.set(mode);
+    this.mapService.setMode(mode);
+  }
+
   toggleMapFullscreen() {
     this.mapFullscreen.update(v => !v);
     setTimeout(() => this.mapService.resizeMap(), 200);
@@ -416,6 +427,10 @@ getDetalleRuta(id: string): string {
   }
 
   trazarRuta() {
+    if (this.mapMode() !== 'draw') {
+      alert('Para trazar una nueva ruta, primero debe habilitar el "✏️ Modo Trazado" en los controles superiores del mapa.');
+      return;
+    }
     this.showRouteTools.set(true);
     this.showRegistrarRutaModal.set(false);
   }

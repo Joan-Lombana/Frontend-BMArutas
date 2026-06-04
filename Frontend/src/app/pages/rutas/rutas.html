@@ -116,7 +116,12 @@
               <div class="icon-wrap"><i class="fa-regular fa-clock"></i></div>
               <div class="info-text">
                 <small>Horario</small>
-                <p>{{ ruta.horario }}</p>
+                <p *ngIf="getRecorridoActivo(ruta.id)?.fecha_programada || getRecorridoActivo(ruta.id)?.fecha_inicio">
+                  {{ getRecorridoActivo(ruta.id)?.fecha_programada || getRecorridoActivo(ruta.id)?.fecha_inicio | date:'dd/MM, h:mm a' }}
+                </p>
+                <p *ngIf="!(getRecorridoActivo(ruta.id)?.fecha_programada || getRecorridoActivo(ruta.id)?.fecha_inicio)">
+                  {{ ruta.horario }}
+                </p>
               </div>
             </div>
             <div class="info-item">
