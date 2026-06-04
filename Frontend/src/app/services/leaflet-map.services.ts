@@ -365,7 +365,7 @@ export class LeafletMapService {
     this.startCoords.delete(recorridoId);
     this.routeCoords.delete(recorridoId);
     this.removerTrail(recorridoId);
-    
+
     const rutaInicio = this.rutaHaciaInicio.get(recorridoId);
     if (rutaInicio) {
       this.liveGroup.removeLayer(rutaInicio);
@@ -688,6 +688,21 @@ export class LeafletMapService {
     }
   }
 
+  /**
+   * Muestra un marcador con la ubicación actual del usuario usando solo un ícono.
+   * @param lat Latitude del usuario.
+   * @param lng Longitude del usuario.
+   */
+  mostrarUbicacion(lat: number, lng: number): void {
+    if (!this.map) return;
+    const ubicacionIcon = L.icon({
+      iconUrl: 'current-location.png', // verifica que el ícono exista
+      iconSize: [30, 30],
+      iconAnchor: [15, 30]
+    });
+    // Añade el marcador con el ícono, sin tooltip ni popup.
+    L.marker([lat, lng], { icon: ubicacionIcon }).addTo(this.liveGroup);
+  }
   // COLORES
   getColorByEstado(estado: string): string {
     const e = (estado || '').toLowerCase();

@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, inject, DestroyRef} from '@angular/core';
+import { Component, signal, OnInit, inject, DestroyRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -225,99 +225,99 @@ export class PrincipalComponent implements OnInit {
   // =========================
 
   configurarWebSocket() {
-  this.ws.onEstadoRecorrido()
-    .pipe(takeUntilDestroyed(this.destroyRef))
-    .subscribe((data: any) => {
-      const estado = (data.estado || '').toLowerCase();
+    this.ws.onEstadoRecorrido()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data: any) => {
+        const estado = (data.estado || '').toLowerCase();
 
-      this.recorridos.update(list =>
-        list.map(r =>
-          r.id === data.recorridoId
-            ? { ...r, estado: data.estado }
-            : r
-        )
-      );
-
-      if (estado === 'finalizado' || estado === 'finalizada') {
-        this.mapService.removerVehiculo(data.recorridoId);
-        this.mapService.removerRutaViva(data.recorridoId);
-        this.mapService.clearPhotoMarkers();
-        this.ws.salirRecorrido(data.recorridoId);
-        this.salasUnidas.delete(data.recorridoId);
-        this.cargarRecorridos();
-      }
-    });
-
-  this.ws.onLocationPhoto()
-    .pipe(takeUntilDestroyed(this.destroyRef))
-    .subscribe((data: any) => {
-      console.log('📷 Foto en vivo recibida en mapa:', data);
-      if (data.lat && data.lon && data.imagen_base64) {
-        this.mapService.showPhotoMarker(
-          data.lat, 
-          data.lon, 
-          data.capturado_ts || Date.now(),
-          data.imagen_base64,
+        this.recorridos.update(list =>
+          list.map(r =>
+            r.id === data.recorridoId
+              ? { ...r, estado: data.estado }
+              : r
+          )
         );
-      }
-    });
 
-  this.ws.onRecorridoEliminado()
-    .pipe(takeUntilDestroyed(this.destroyRef))
-    .subscribe((data: any) => {
-
-      this.recorridos.update(list =>
-        list.filter(r => r.id !== data.recorridoId)
-      );
-      // Remove visual elements (live route, vehicle, path to start)
-      this.mapService.removerRutaViva(data.recorridoId);
-      this.mapService.removerVehiculo(data.recorridoId);
-    });
-
-  this.ws.onPosicion()
-    .pipe(takeUntilDestroyed(this.destroyRef))
-    .subscribe((data: any) => {
-      const recorrido = this.recorridos().find(r => r.id === data.recorridoId);
-      const ruta = this.rutas().find(r => r.id === recorrido?.ruta_id);
-      const vehiculo = this.vehiculos().find(v => v.id === recorrido?.vehiculo_id);
-
-      this.mapService.actualizarVehiculo(
-        data.recorridoId,
-        data.latitud ?? data.lat,
-        data.longitud ?? data.lng,
-        {
-          ruta: recorrido?.ruta?.nombre_ruta || ruta?.nombre_ruta,
-          conductor: recorrido?.conductor_id ? this.getDetalleConductor(recorrido.conductor_id) : undefined,
-          placa: vehiculo?.placa
+        if (estado === 'finalizado' || estado === 'finalizada') {
+          this.mapService.removerVehiculo(data.recorridoId);
+          this.mapService.removerRutaViva(data.recorridoId);
+          this.mapService.clearPhotoMarkers();
+          this.ws.salirRecorrido(data.recorridoId);
+          this.salasUnidas.delete(data.recorridoId);
+          this.cargarRecorridos();
         }
-      );
-    });
+      });
 
-  this.ws.onPosicionActualizada()
-    .pipe(takeUntilDestroyed(this.destroyRef))
-    .subscribe((data: any) => {
-      console.log('✏️ Posición actualizada:', data);
-    });
-}
+    this.ws.onLocationPhoto()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data: any) => {
+        console.log('📷 Foto en vivo recibida en mapa:', data);
+        if (data.lat && data.lon && data.imagen_base64) {
+          this.mapService.showPhotoMarker(
+            data.lat,
+            data.lon,
+            data.capturado_ts || Date.now(),
+            data.imagen_base64,
+          );
+        }
+      });
+
+    this.ws.onRecorridoEliminado()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data: any) => {
+
+        this.recorridos.update(list =>
+          list.filter(r => r.id !== data.recorridoId)
+        );
+        // Remove visual elements (live route, vehicle, path to start)
+        this.mapService.removerRutaViva(data.recorridoId);
+        this.mapService.removerVehiculo(data.recorridoId);
+      });
+
+    this.ws.onPosicion()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data: any) => {
+        const recorrido = this.recorridos().find(r => r.id === data.recorridoId);
+        const ruta = this.rutas().find(r => r.id === recorrido?.ruta_id);
+        const vehiculo = this.vehiculos().find(v => v.id === recorrido?.vehiculo_id);
+
+        this.mapService.actualizarVehiculo(
+          data.recorridoId,
+          data.latitud ?? data.lat,
+          data.longitud ?? data.lng,
+          {
+            ruta: recorrido?.ruta?.nombre_ruta || ruta?.nombre_ruta,
+            conductor: recorrido?.conductor_id ? this.getDetalleConductor(recorrido.conductor_id) : undefined,
+            placa: vehiculo?.placa
+          }
+        );
+      });
+
+    this.ws.onPosicionActualizada()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data: any) => {
+        console.log('✏️ Posición actualizada:', data);
+      });
+  }
 
   getDetalleConductor(id: string): string {
-  const conductor = this.conductores().find(c => c.id === id);
-  return conductor
-    ? `${conductor.nombre || ''} ${conductor.apellido || ''}`.trim()
-    : 'Conductor desconocido';
-}
+    const conductor = this.conductores().find(c => c.id === id);
+    return conductor
+      ? `${conductor.nombre || ''} ${conductor.apellido || ''}`.trim()
+      : 'Conductor desconocido';
+  }
 
-getDetalleVehiculo(id: string): string {
-  const vehiculo = this.vehiculos().find(v => v.id === id);
-  return vehiculo
-    ? `${vehiculo.placa} - ${vehiculo.marca} ${vehiculo.modelo}`
-    : 'Vehículo desconocido';
-}
+  getDetalleVehiculo(id: string): string {
+    const vehiculo = this.vehiculos().find(v => v.id === id);
+    return vehiculo
+      ? `${vehiculo.placa} - ${vehiculo.marca} ${vehiculo.modelo}`
+      : 'Vehículo desconocido';
+  }
 
-getDetalleRuta(id: string): string {
-  const ruta = this.rutas().find(r => r.id === id);
-  return ruta?.nombre_ruta || 'Ruta sin nombre';
-}
+  getDetalleRuta(id: string): string {
+    const ruta = this.rutas().find(r => r.id === id);
+    return ruta?.nombre_ruta || 'Ruta sin nombre';
+  }
 
   // =========================
   // SELECCIÓN RUTA MAPA
@@ -426,6 +426,25 @@ getDetalleRuta(id: string): string {
     this.showIngresarDireccionModal.set(false);
   }
 
+  obtenerUbicacion() {
+    if (!navigator.geolocation) {
+      alert('Geolocalización no está disponible en este navegador.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        this.mapService.mostrarUbicacion(lat, lng);
+      },
+      (error) => {
+        console.error('Error al obtener posición:', error);
+        alert('No se pudo obtener la ubicación.');
+      }
+    );
+  }
+
+
   trazarRuta() {
     if (this.mapMode() !== 'draw') {
       alert('Para trazar una nueva ruta, primero debe habilitar el "✏️ Modo Trazado" en los controles superiores del mapa.');
@@ -434,8 +453,11 @@ getDetalleRuta(id: string): string {
     this.showRouteTools.set(true);
     this.showRegistrarRutaModal.set(false);
   }
+  guardarRuta() {
+    // Implementación futura para guardar la ruta
+    console.log('guardarRuta ejecutado');
+  }
 
-  guardarRuta() {}
-  guardarVehiculo() {}
-  guardarDireccion() {}
+  guardarVehiculo() { }
+  guardarDireccion() { }
 }
