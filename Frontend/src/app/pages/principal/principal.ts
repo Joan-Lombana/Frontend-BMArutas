@@ -458,6 +458,35 @@ export class PrincipalComponent implements OnInit {
     console.log('guardarRuta ejecutado');
   }
 
-  guardarVehiculo() { }
+  guardarVehiculo() {
+  const vehiculo = this.formVehiculo();
+  if (!vehiculo.placa || !vehiculo.modelo || !vehiculo.marca) {
+    alert('⚠️ Todos los campos son obligatorios');
+    return;
+  }
+  if (!confirm(`¿Desea registrar el vehículo ${vehiculo.placa}?`)) {
+    return;
+  }
+
+  this.vehiculosService.registrarVehiculo(vehiculo).subscribe({
+    next: () => {
+      alert('✅ Vehículo registrado correctamente');
+      this.cargarVehiculos();
+      this.actualizarStats();
+      this.formVehiculo.set({
+        placa: '',
+        modelo: '',
+        marca: '',
+        activo: true
+      });
+
+      this.cerrarModalRegistrarVehiculo();
+    },
+    error: (err) => {
+      console.error(err);
+      alert('❌ Error al registrar el vehículo');
+    }
+  });
+  }
   guardarDireccion() { }
 }

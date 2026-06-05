@@ -48,20 +48,19 @@ export class VehiculosComponent implements OnInit {
   }
 
   eliminarVehiculo(v: Vehiculo) {
-    console.log('🟢 Intentando eliminar vehículo:', v);
-    if (confirm(`¿Eliminar vehículo ${v.placa}?`)) {
-      console.log('✅ Confirmado eliminar vehículo ID:', v.id);
-      this.vehiculosService.eliminarVehiculo(v.id, ).subscribe({  // <- PASAR perfilId
-        next: () => {
-          console.log('🚀 Vehículo eliminado correctamente');
-          this.cargarVehiculos();
-        },
-        error: (err) => {
-          console.error('❌ Error eliminando vehículo:', err);
-          alert('Error eliminando vehículo');
-        }
-      });
+  if (!confirm(`¿Está seguro de eliminar el vehículo ${v.placa}?`)) {
+    return;
+  }
+  this.vehiculosService.eliminarVehiculo(v.id).subscribe({
+    next: () => {
+      alert('✅ Vehículo eliminado correctamente');
+      this.cargarVehiculos();
+    },
+    error: (err) => {
+      console.error(err);
+      alert('❌ No fue posible eliminar el vehículo');
     }
+  });
   }
 
   editarVehiculo(v: Vehiculo) {
